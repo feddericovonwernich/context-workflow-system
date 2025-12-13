@@ -12,15 +12,40 @@ The Context Workflow System provides:
 - **Constitutional Compliance**: Built-in validation against architectural principles
 - **Progressive Enhancement**: Workflows evolve from simple to complex through iterative refinement
 
-## Installation
+## Quick Install
 
-Copy the `.claude/` directory contents to your project's `.claude/` directory:
+Run this command from your repository root:
 
 ```bash
-# Clone this repository
-git clone https://github.com/feddericovonwernich/context-workflow-system.git
+curl -sSL https://raw.githubusercontent.com/feddericovonwernich/context-workflow-system/main/install.sh | bash
+```
 
-# Copy to your project
+Or download and run with options:
+
+```bash
+# Download the installer
+curl -sSLO https://raw.githubusercontent.com/feddericovonwernich/context-workflow-system/main/install.sh
+chmod +x install.sh
+
+# Preview changes without installing
+./install.sh --dry-run
+
+# Install (backs up existing files)
+./install.sh
+
+# Install from a specific branch
+./install.sh --branch develop
+
+# Force overwrite without backups
+./install.sh --force
+```
+
+### Manual Installation
+
+Alternatively, copy the `.claude/` directory contents manually:
+
+```bash
+git clone https://github.com/feddericovonwernich/context-workflow-system.git
 cp -r context-workflow-system/.claude/* your-project/.claude/
 ```
 
