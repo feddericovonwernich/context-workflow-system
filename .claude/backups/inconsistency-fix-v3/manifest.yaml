@@ -1,0 +1,117 @@
+backup_info:
+  timestamp: "2025-12-13T17:06:00Z"
+  workflow: "fix-system-inconsistencies-v3"
+  reason: "Pre-fix backup for 12 identified inconsistencies"
+
+files:
+  - name: "SPECIFICATION.md"
+    source: ".claude/docs/SPECIFICATION.md"
+    backup: ".claude/backups/inconsistency-fix-v3/SPECIFICATION.md"
+    size_bytes: 22393
+    issues_to_fix: [6, 8]
+
+  - name: "REFERENCE.md"
+    source: ".claude/docs/REFERENCE.md"
+    backup: ".claude/backups/inconsistency-fix-v3/REFERENCE.md"
+    size_bytes: 5999
+    issues_to_fix: [1, 4]
+
+  - name: "INTRODUCTION.md"
+    source: ".claude/docs/INTRODUCTION.md"
+    backup: ".claude/backups/inconsistency-fix-v3/INTRODUCTION.md"
+    size_bytes: 22043
+    issues_to_fix: [3, 10]
+
+  - name: "workflow-validator.md"
+    source: ".claude/agents/workflow/workflow-validator.md"
+    backup: ".claude/backups/inconsistency-fix-v3/workflow-validator.md"
+    size_bytes: 7156
+    issues_to_fix: [2, 5, 7, 9, 11]
+
+inconsistencies_summary:
+  total: 12
+  high_priority: 4
+  medium_priority: 4
+  low_priority: 4
+
+  by_file:
+    SPECIFICATION.md: 2
+    REFERENCE.md: 2
+    INTRODUCTION.md: 2
+    workflow-validator.md: 5
+    validate-workflow.md: 1
+
+  issue_details:
+    - id: 1
+      file: "REFERENCE.md"
+      priority: "high"
+      description: "phase_metadata recommended vs required inconsistency"
+
+    - id: 2
+      file: "workflow-validator.md"
+      priority: "high"
+      description: "phase_metadata check severity (WARNING vs ERROR)"
+
+    - id: 3
+      file: "INTRODUCTION.md"
+      priority: "high"
+      description: "minimum phases contradiction (at least 2 vs minimum requirement)"
+
+    - id: 4
+      file: "REFERENCE.md"
+      priority: "high"
+      description: "minimum phases note inconsistency"
+
+    - id: 5
+      file: "workflow-validator.md"
+      priority: "medium"
+      description: "inconsistent NOTE formatting"
+
+    - id: 6
+      file: "SPECIFICATION.md"
+      priority: "medium"
+      description: "phase_metadata requirement clarity needed"
+
+    - id: 7
+      file: "workflow-validator.md"
+      priority: "medium"
+      description: "INFO severity description for missing metadata"
+
+    - id: 8
+      file: "SPECIFICATION.md"
+      priority: "medium"
+      description: "validation warnings documentation completeness"
+
+    - id: 9
+      file: "workflow-validator.md"
+      priority: "low"
+      description: "cross-reference to INTRODUCTION.md needed"
+
+    - id: 10
+      file: "INTRODUCTION.md"
+      priority: "low"
+      description: "validation severity reference needed"
+
+    - id: 11
+      file: "workflow-validator.md"
+      priority: "low"
+      description: "schema file references needed"
+
+    - id: 12
+      file: "validate-workflow.md"
+      priority: "low"
+      description: "strict mode documentation needed"
+
+backup_verification:
+  all_files_backed_up: true
+  files_readable: true
+  backup_complete: true
+
+restore_instructions: |
+  To restore from this backup:
+  1. Copy files from .claude/backups/inconsistency-fix-v3/ back to their source locations
+  2. Use the following commands:
+     cp .claude/backups/inconsistency-fix-v3/SPECIFICATION.md .claude/docs/
+     cp .claude/backups/inconsistency-fix-v3/REFERENCE.md .claude/docs/
+     cp .claude/backups/inconsistency-fix-v3/INTRODUCTION.md .claude/docs/
+     cp .claude/backups/inconsistency-fix-v3/workflow-validator.md .claude/agents/workflow/

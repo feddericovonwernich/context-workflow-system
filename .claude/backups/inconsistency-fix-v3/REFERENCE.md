@@ -33,7 +33,7 @@ version: 1.0.0            # Required: semver
 
 parameters:               # Optional: parameters
   PARAM_NAME:
-    type: string         # string|boolean|integer|number|enum|file|directory|array
+    type: string         # string|boolean|integer|number|enum|file|directory
     required: true       # Is required?
     default: value       # Default value
     description: "..."   # Description
@@ -97,10 +97,6 @@ phase_metadata: {...}
 ## Tasks for Todo List
 1. Task one
 2. Task two
-
-## Parameters Used
-- `PARAM_NAME`: Description of how this parameter is used
-- `OTHER_PARAM`: Description
 
 ## Process
 ### Step 1: Name

@@ -149,18 +149,6 @@ parameters:
     enum: ["dev", "staging", "prod"]
 ```
 
-### Phases Configuration Details
-
-#### `parallel_execution_supported`
-
-This boolean flag indicates whether the workflow contains phases that use parallel execution mode. It serves as:
-
-1. **Documentation**: Signals to users that this workflow leverages parallel agent execution
-2. **Validation hint**: Validators can check that `execution_mode: parallel` appears in at least one phase when this is `true`
-3. **Future use**: May be used by orchestrators to pre-allocate resources for parallel execution
-
-**Note**: This flag is informational. The actual parallel execution is controlled by individual phase metadata (`execution_mode: parallel`), not this workflow-level flag. Setting this to `true` when no phases use parallel mode is a validation warning, not an error.
-
 ## Phase Metadata Schema
 
 ### Required Structure
@@ -204,8 +192,6 @@ phase_metadata:
     parameters:             # Output parameter specifications
       - name: string       # Parameter name for next phases
         description: string # What this parameter represents
-        required: boolean   # Whether this parameter is guaranteed to be set (default: true)
-        type: string       # Parameter type (string|boolean|integer|number|enum|file|directory|array)
   
   # Optional: Agent preferences
   preferred_agent: string   # Hint for orchestrator agent selection

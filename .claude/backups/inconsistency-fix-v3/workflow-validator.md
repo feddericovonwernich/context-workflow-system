@@ -70,7 +70,7 @@ Validate presence of:
 #### Parameters Section
 ```yaml
 Each parameter must have:
-- name: string (UPPER_SNAKE_CASE, must match pattern ^[A-Z][A-Z0-9_]*$)
+- name: string (valid identifier)
 - type: enum [string, boolean, integer, number, enum, file, directory, array]
 - required: boolean
 - description: string
@@ -79,13 +79,6 @@ Optional:
 - enum: array (if type is enum)
 - example: matching type
 ```
-
-#### Parameter Naming Convention
-All parameter names must follow UPPER_SNAKE_CASE convention:
-- Pattern: `^[A-Z][A-Z0-9_]*$`
-- Valid examples: `OUTPUT_DIR`, `MAX_RETRIES`, `ENABLE_LOGGING`
-- Invalid examples: `outputDir`, `max-retries`, `enableLogging`
-- Reserved prefixes to avoid: `PHASE_`, `WORKFLOW_`, `SYSTEM_`
 
 #### Phases Configuration
 ```yaml
@@ -112,7 +105,6 @@ phase_metadata:
       - name: string
         required: boolean
         description: string
-        type: string (optional)
   outputs:
     files:
       - path: string
@@ -120,47 +112,21 @@ phase_metadata:
     parameters:
       - name: string
         description: string
-        type: string (optional)
 ---
 ```
 
-#### Parameter Type Validation
-For both input and output parameters, validate that the `type` field (when present) uses one of the 8 valid types:
-
-| Type | Description |
-|------|-------------|
-| `string` | Text values |
-| `boolean` | True/false flags |
-| `integer` | Whole numbers |
-| `number` | Decimal numbers |
-| `enum` | Restricted choices (requires `enum` field) |
-| `file` | File paths |
-| `directory` | Directory paths |
-| `array` | Lists of values |
-
-**Validation Rules**:
-- If `type` is specified, it must be one of the 8 types above
-- If `type: enum`, verify `enum` field exists with valid options
-- Type is optional in phase metadata but recommended for clarity
-
 #### Content Structure Validation
-Required sections (in order, per SPECIFICATION.md):
+Required sections:
 ```
-1. Phase metadata (YAML frontmatter)
-2. # Phase [Number]: [Name]
-3. **Purpose**: Description
-4. ## Prerequisites
-5. ## Tasks for Todo List
-6. ## Parameters Used
-7. ## Process
-8. ## Outputs
-9. ## Success Criteria
-10. ## Error Handling
+- # Phase [Number]: [Name]
+- **Purpose**: Description
+- ## Prerequisites
+- ## Tasks for Todo List
+- ## Process
+- ## Outputs
+- ## Success Criteria
+- ## Error Handling
 ```
-
-Optional sections (recommended for complex phases):
-- ## Rollback Plan
-- ## Notes
 
 ### Phase 5: README Coherence Validation
 
@@ -196,59 +162,6 @@ Verify:
 - Phase prerequisites reference available outputs
 - No circular dependencies
 - Required files generated before use
-
-## Validation Modes
-
-The validator supports different modes based on user request (communicated via natural language in the prompt):
-
-### Standard Mode (Default)
-- Perform all validation checks
-- Report ERRORs, WARNINGs, and INFO items
-- Provide detailed findings and recommendations
-
-### Strict Mode
-Activated when user includes "strict mode" or "treat warnings as errors" in request:
-- All WARNING items are elevated to ERROR severity
-- Workflow is marked INVALID if any warnings exist
-- Use for production-ready validation
-
-### Summary Mode
-Activated when user asks for "summary" or "quick check":
-- Report only overall status (VALID/WARNINGS/INVALID)
-- Show error and warning counts
-- Omit detailed findings unless requested
-- Faster for CI/CD integration
-
-### JSON Output Mode
-Activated when user requests "JSON format" or "for CI/CD":
-- Output validation results as structured JSON
-- Include all findings with severity, file, line, and message
-- Machine-parseable for automation
-
-**JSON Output Structure**:
-```json
-{
-  "workflow": "workflow-name",
-  "version": "1.0.0",
-  "status": "VALID|WARNINGS|INVALID",
-  "summary": {
-    "total_checks": 42,
-    "passed": 40,
-    "warnings": 2,
-    "errors": 0
-  },
-  "findings": [
-    {
-      "severity": "WARNING",
-      "category": "metadata",
-      "file": "phase-01-setup.md",
-      "line": 15,
-      "message": "Missing phase_metadata section",
-      "recommendation": "Add metadata section with inputs/outputs"
-    }
-  ]
-}
-```
 
 ## Report Generation
 

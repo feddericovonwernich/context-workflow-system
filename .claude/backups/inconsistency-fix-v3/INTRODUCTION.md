@@ -477,32 +477,18 @@ phase-05-integrate.md             # Integration and verification
 
 **Simple Flow:**
 ```yaml
-# Phase 1 declares it will output a parameter
-# (actual value discovered at runtime, reported in completion report)
+# Phase 1 outputs
 outputs:
   parameters:
     - name: DATABASE_TYPE
-      description: "Type of database detected or configured"
-      type: string
-
-# Phase 2 declares it needs this parameter
+      value: "postgresql"
+    
+# Phase 2 receives
 inputs:
   parameters:
     - name: DATABASE_TYPE
       required: true
-      description: "Database type from previous phase"
 ```
-
-**How values flow:**
-1. Phase 1 executes and discovers `DATABASE_TYPE = "postgresql"`
-2. Phase 1 reports this in its completion report:
-   ```yaml
-   phase_completion:
-     parameters_discovered:
-       DATABASE_TYPE: "postgresql"
-   ```
-3. Orchestrator updates `runtime-parameters.yaml`
-4. Phase 2 receives `DATABASE_TYPE` with value "postgresql"
 
 **Discovery Pattern:**
 ```yaml
@@ -610,20 +596,14 @@ Benefits:
 - Maintains isolation between parallel executions
 - Aggregates results for next phases
 
-### Sequential Phase Groups
+### Sequential Phase Groups (Future Enhancement)
 
-> **NOT IMPLEMENTED**: This feature is planned for a future release and is not currently available. The syntax below is for illustration only.
-
-Non-dependent phases could theoretically run concurrently:
+Non-dependent phases could run concurrently:
 ```yaml
-# FUTURE FEATURE - NOT YET SUPPORTED
 phase_groups:
   - [phase-02a-api.md, phase-02b-ui.md, phase-02c-db.md]
 ```
-
-**Current Status**: All phases execute sequentially in numeric order. There is no support for grouping phases to run in parallel.
-
-**What IS supported**: Individual phases can use `execution_mode: parallel` to process multiple work items concurrently within a single phase. See [Parallel Agent Execution](#parallel-agent-execution-within-phases) for details.
+Note: This is a future enhancement. Currently, phases run sequentially.
 
 ### Dynamic Phase Generation
 
