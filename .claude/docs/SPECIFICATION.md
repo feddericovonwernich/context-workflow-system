@@ -374,7 +374,7 @@ EVENT_TYPES:
 - PARAMETERS_DISCOVERED: Phase N discovered new parameters
 - PHASE_COMPLETE: Phase N completed successfully
 - PHASE_FAILED: Phase N failed with error
-- PHASE_RETRY: Retrying phase N (attempt M)
+- PHASE_RETRY: Phase N being retried (attempt number, reason)
 - WORKFLOW_COMPLETE: All phases completed successfully
 - WORKFLOW_ABORTED: Workflow terminated due to error
 ```

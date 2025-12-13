@@ -3,13 +3,13 @@
 ## Commands
 ```bash
 # Create a workflow from input files
-create-workflow <input-files...> --name <name> [--type <type>]
+/create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
 
 # Execute a workflow
-run-workflow <workflow-dir> [parameters...]
+/run-workflow <workflow-dir> [parameters...]
 
-# Validate a workflow
-validate-workflow <workflow-dir> [--strict-mode]
+# Validate a workflow (modes specified via natural language in prompt)
+/validate-workflow <workflow-dir>
 ```
 
 ## Directory Structure
@@ -43,6 +43,7 @@ phases:                  # Optional: execution config
   allow_retry: true
   generate_logs: true
   stop_on_failure: true
+  parallel_execution_supported: false  # Set true if workflow has parallel phases
 ```
 
 ## Phase Metadata (Recommended at top of each phase file)

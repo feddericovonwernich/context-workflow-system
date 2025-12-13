@@ -13,9 +13,9 @@ The Workflow Orchestration System is a sophisticated framework for transforming 
 
 ## System Overview
 
-### The Two-Command Architecture
+### The Three-Command Architecture
 
-The system operates through two primary commands:
+The system operates through three primary commands:
 
 1. **`create-workflow`**: Generates complete workflow structures from input files
    - Analyzes requirements, specifications, code, and documentation
@@ -29,6 +29,12 @@ The system operates through two primary commands:
    - Executes each phase via isolated agents
    - Manages context flow between phases
    - Provides progress tracking and error handling
+
+3. **`validate-workflow`**: Validates workflow structure and metadata
+   - Checks directory structure and file naming conventions
+   - Validates metadata completeness in workflow.yaml and phase files
+   - Verifies parameter flow between phases
+   - Ensures documentation alignment with implementation
 
 ### Core Philosophy
 
@@ -122,6 +128,7 @@ phase_metadata:
     parameters:
       - name: DECISION_MADE
         description: "Key decision from this phase"
+        type: string
 ---
 ```
 
@@ -678,10 +685,13 @@ This architecture ensures that complex technical processes can be automated safe
 
 ```bash
 # Create a workflow
-create-workflow <input-files...> --name <name> [--type <type>]
+/create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
 
 # Execute a workflow
-run-workflow <workflow-dir> [parameters...]
+/run-workflow <workflow-dir> [parameters...]
+
+# Validate a workflow
+/validate-workflow <workflow-dir>
 ```
 
 ### File Structure

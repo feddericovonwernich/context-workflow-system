@@ -76,6 +76,8 @@ Analyze provided files to understand requirements, then generate a complete work
    - **Migration**: Contains migrate, transform, upgrade, conversion
    - **Build**: Contains compile, build, package, bundle
    - **Data Processing**: Contains ETL, process, analyze, transform
+   - **Requirements Processing**: Contains requirements, features, specs, user stories
+   - **Technical Planning**: Contains design, architecture, plan, research, review
    - **Setup**: Contains install, configure, initialize, provision
    - **Automation**: Contains automate, schedule, orchestrate
 
@@ -224,7 +226,7 @@ Each phase must include:
 
 ### Each workflow must have:
 - Clear objective and description
-- 2-7 well-defined phases (Simple: 2-3, Medium: 4-5, Complex: 6+)
+- Minimum 2 well-defined phases (Simple: 2-3, Medium: 4-5, Complex: 6+)
 - Complete parameter definitions with types
 - Detailed task breakdowns per phase
 - Error handling in each phase

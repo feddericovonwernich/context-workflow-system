@@ -294,6 +294,7 @@ Statistics:
 
 #### Warnings
 - Missing phase_metadata sections
+- Missing metadata section (per SPECIFICATION.md)
 - Incomplete documentation
 - Missing optional but recommended fields
 - Deprecated patterns
@@ -303,7 +304,6 @@ Statistics:
 - Missing examples directory
 - No README.md file
 - Verbose phase names
-- Missing metadata section
 - Optimization opportunities
 
 ## Validation Execution Steps

@@ -172,8 +172,8 @@ When starting this phase, add these tasks:
 3. Third task to complete
 
 ## Parameters Used
-- `environment`: Target environment for deployment
-- `backup`: Whether to create backup
+- `ENVIRONMENT`: Target environment for deployment
+- `BACKUP`: Whether to create backup
 
 ## Process
 
