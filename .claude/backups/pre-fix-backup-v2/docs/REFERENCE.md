@@ -23,8 +23,6 @@ workflow-directory/
 └── examples/             # Optional: Examples
 ```
 
-> **Minimum**: 2 phase files required. Can be `phase-00` + `phase-01` OR `phase-01` + `phase-02`.
-
 ## workflow.yaml Structure
 ```yaml
 name: workflow-name        # Required: kebab-case
@@ -45,7 +43,7 @@ phases:                  # Optional: execution config
   stop_on_failure: true
 ```
 
-## Phase Metadata (Recommended at top of each phase file)
+## Phase Metadata (Required at top of each phase file)
 ```yaml
 ---
 phase_metadata:
@@ -78,8 +76,6 @@ phase_metadata:
         description: "Output value"
 ---
 ```
-
-> **Note**: Phase metadata is strongly recommended for explicit input/output contracts. Phases without metadata will still execute but with implicit parameter passing.
 
 ## Phase File Structure
 ```markdown
@@ -122,7 +118,6 @@ Instructions...
 | `enum` | `"prod"` | From list |
 | `file` | `"./file"` | File path |
 | `directory` | `"./dir"` | Dir path |
-| `array` | `["a","b"]` | List of values |
 
 ## Parameter Resolution Order
 1. CLI arguments (highest)
@@ -130,16 +125,6 @@ Instructions...
 3. Previous phase outputs
 4. workflow.yaml defaults
 5. Phase metadata defaults
-
-## Environment Variables
-
-Parameters can be set via environment variables using the `WORKFLOW_` prefix:
-
-| Parameter | Environment Variable |
-|-----------|---------------------|
-| `OUTPUT_DIR` | `WORKFLOW_OUTPUT_DIR` |
-| `MAX_RETRIES` | `WORKFLOW_MAX_RETRIES` |
-| `ENVIRONMENT` | `WORKFLOW_ENVIRONMENT` |
 
 ## Execution Modes
 
@@ -162,11 +147,10 @@ Note: Custom specialized agents can be created and referenced in `parallel_confi
 
 ## Critical Rules
 1. **No Nested Agents**: Agents cannot invoke other agents
-2. **Minimum Phases**: At least 2 phase files required
-3. **Sequential Numbering**: No gaps allowed (01, 02, 03... not 01, 03)
-4. **Parameter Names**: UPPER_SNAKE_CASE
-5. **File Names**: `phase-XX-name.md` format (XX = two digits)
-6. **Explicit Dependencies**: All inputs should be declared in metadata
+2. **Sequential Phases**: No gaps in numbering
+3. **Parameter Names**: UPPER_SNAKE_CASE
+4. **File Names**: phase-XX-name.md format
+5. **Explicit Dependencies**: All inputs declared
 
 ## Validation Levels
 - **ERROR** ✗ - Blocks execution
@@ -199,18 +183,10 @@ prerequisites:
 ```
 
 ## File References
-
-Paths relative to `.claude/docs/`:
 - [Full Specification](SPECIFICATION.md)
 - [Introduction](INTRODUCTION.md)
 - [Workflow Schema](../schemas/workflow-schema.yaml)
 - [Phase Schema](../schemas/phase-metadata-schema.yaml)
-
-From project root, use:
-- `.claude/docs/SPECIFICATION.md`
-- `.claude/docs/INTRODUCTION.md`
-- `.claude/schemas/workflow-schema.yaml`
-- `.claude/schemas/phase-metadata-schema.yaml`
 
 ## Troubleshooting
 
@@ -220,7 +196,6 @@ From project root, use:
 | "Parameter undefined" | Add to workflow.yaml |
 | "Missing metadata" | Add phase_metadata section |
 | "Agent failed" | Check phase can't invoke agents |
-| "Sequence gap" | Ensure sequential numbering |
 
 ## Best Practices
 1. Always include phase_metadata

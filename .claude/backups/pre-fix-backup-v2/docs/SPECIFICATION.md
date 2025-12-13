@@ -78,17 +78,12 @@ User → Command → Orchestrator → Phase Loop → Agent Execution → Output 
 - **Phase 00**: Reserved for setup, discovery, or parameter initialization
   - If present, must be followed by `01`, `02`, etc.
   - Optional - not all workflows need a phase 00
-- **Minimum Phases**: At least two phase files required
-  - Valid configurations: `phase-01` + `phase-02` OR `phase-00` + `phase-01`
-  - Any sequential combination of 2+ phases with no gaps is valid
+- **Minimum Phases**: At least two execution phases required (e.g., `01` and `02`, or `00`, `01`, and `02`)
 - **Valid Examples**:
-  - `phase-01-*.md`, `phase-02-*.md` (two phases, no setup)
-  - `phase-00-*.md`, `phase-01-*.md` (two phases with setup)
-  - `phase-00-*.md`, `phase-01-*.md`, `phase-02-*.md` (three phases with setup)
-  - `phase-01-*.md`, `phase-02-*.md`, `phase-03-*.md` (three phases, no setup)
+  - `phase-01-*.md`, `phase-02-*.md` (no setup phase)
+  - `phase-00-*.md`, `phase-01-*.md`, `phase-02-*.md` (with setup phase)
 - **Invalid Examples**:
-  - `phase-01-*.md` only (only one phase - needs at least two)
-  - `phase-00-*.md` only (only one phase - needs at least two)
+  - `phase-01-*.md` only (needs at least two phases)
   - `phase-00-*.md`, `phase-02-*.md` (gap - missing 01)
   - `phase-01-*.md`, `phase-03-*.md` (gap - missing 02)
 
@@ -127,16 +122,6 @@ metadata:                      # Workflow metadata
   supported_agents: array      # List of specialized agents used
   architecture_notes: array    # Important architectural constraints
 ```
-
-### Field Constraints
-
-| Field | Min Length | Max Length | Format |
-|-------|------------|------------|--------|
-| `name` | 3 | 50 | kebab-case (`^[a-z][a-z0-9-]*$`) |
-| `description` | 10 | 500 | Any text |
-| `version` | - | - | Semantic version (`X.Y.Z`) |
-| Parameter `description` | 5 | 200 | Any text |
-| Phase file `description` | 5 | 200 | Any text |
 
 ### Parameter Array Format
 Parameters can also be defined as an array:
@@ -187,7 +172,6 @@ phase_metadata:
     files:                   # Output file specifications
       - path: string        # Path where file will be created (can use parameters)
         description: string # What this file contains
-        required: boolean   # Whether output must be created (default: true)
     
     parameters:             # Output parameter specifications
       - name: string       # Parameter name for next phases
@@ -218,14 +202,10 @@ filename: "${PREFIX}report.md"
 
 **Resolution Sources** (in priority order):
 1. Command-line arguments
-2. Environment variables with `WORKFLOW_` prefix (e.g., `WORKFLOW_OUTPUT_DIR` for parameter `OUTPUT_DIR`)
+2. Environment variables (WORKFLOW_PARAM_NAME format)
 3. Previous phase outputs (from runtime-parameters.yaml)
 4. Default values in workflow.yaml
 5. Default values in phase metadata
-
-**Environment Variable Convention**: To pass a parameter via environment variable, prefix the parameter name with `WORKFLOW_`. For example:
-- Parameter `OUTPUT_DIR` → Environment variable `WORKFLOW_OUTPUT_DIR`
-- Parameter `MAX_RETRIES` → Environment variable `WORKFLOW_MAX_RETRIES`
 
 **Example**:
 ```yaml
@@ -249,11 +229,10 @@ path: "$OUTPUT_DIR/$SPECS_DIR/report.md"
 | `enum` | Restricted choice | `"prod"` | Must match enum list |
 | `file` | File path | `"./config.yaml"` | File should exist |
 | `directory` | Directory path | `"./outputs"` | Directory should exist |
-| `array` | List of values | `["a", "b", "c"]` | Valid JSON/YAML array |
 
 ### Parameter Resolution Order
 1. Command-line arguments (highest priority)
-2. Environment variables with `WORKFLOW_` prefix (e.g., `WORKFLOW_OUTPUT_DIR` for parameter `OUTPUT_DIR`)
+2. Environment variables (WORKFLOW_PARAM_NAME)
 3. Previous phase outputs (runtime-parameters.yaml)
 4. Default values in workflow.yaml
 5. Default values in phase metadata

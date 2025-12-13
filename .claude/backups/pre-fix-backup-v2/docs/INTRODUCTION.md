@@ -8,7 +8,7 @@ The Workflow Orchestration System is a sophisticated framework for transforming 
 - **Intelligent Workflow Generation**: Automatically creates structured workflows from specifications, requirements, or documentation
 - **Agent-Based Execution**: Each phase runs in an isolated agent context with explicit inputs/outputs
 - **Full Traceability**: Complete audit trail of decisions, parameters, and outputs
-- **Specification Compliance**: Built-in validation against architectural principles
+- **Constitutional Compliance**: Built-in validation against architectural principles
 - **Progressive Enhancement**: Workflows evolve from simple to complex through iterative refinement
 
 ## System Overview
@@ -204,7 +204,7 @@ workflow-creator agent
         ↓
 Workflow Directory Created
     ↓
-[run-workflow command]
+[workflow command]
     ↓
 Workflow Orchestrator
     ├── Discovers phases
@@ -344,15 +344,15 @@ Pre-built patterns for common scenarios:
 - Output templates (OpenAPI, GraphQL, test plans)
 - Documentation templates
 
-### Architectural Principles
+### Constitution
 
-Best practices encouraged in workflows:
-- Clear separation of concerns
-- Explicit dependencies between phases
-- Comprehensive error handling
-- Measurable success criteria
-- Documentation-driven design
-- Compliance with SPECIFICATION.md
+Architectural principles enforced across workflows:
+- Library-first architecture
+- Test-first development
+- Integration-first testing
+- Observability requirements
+- Simplicity (YAGNI)
+- Compatibility contracts
 
 ## Usage Patterns
 
@@ -512,11 +512,10 @@ inputs:
 
 ### With AI Agents
 
-- **Orchestrator Control**: The orchestrator invokes agents for each phase
-- **No Nested Agents**: Phases cannot invoke other agents (see SPECIFICATION.md#agent-constraints)
-- **Tool Access**: Phase executors have access to standard tools (file operations, bash, etc.)
-- **Context Management**: Orchestrator manages parameter flow between phases
-- **Error Recovery**: Agents report failures via structured completion reports
+- **Specialized Agents**: Can be called within phases
+- **Tool Access**: Phases can use all available tools
+- **Context Management**: Orchestrator handles state
+- **Error Recovery**: Agents report failures clearly
 
 ### With Documentation
 
@@ -709,6 +708,5 @@ run-workflow <workflow-dir> [parameters...]
 - `enum` - Restricted choices
 - `file` - File paths
 - `directory` - Directory paths
-- `array` - Lists of values
 
 This introduction provides the conceptual foundation for understanding and using the Workflow Orchestration System effectively.

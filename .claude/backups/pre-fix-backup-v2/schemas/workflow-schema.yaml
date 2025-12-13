@@ -79,7 +79,14 @@ properties:
         type: boolean
         description: Workflow contains phases that support parallel execution
         default: false
-
+      
+      default_agent:
+        type: string
+        description: Default agent for executing phases. Only phase-executor is valid for phase execution.
+        default: phase-executor
+        enum:
+          - phase-executor
+    
     additionalProperties: false
   
   metadata:
@@ -156,7 +163,6 @@ definitions:
           - enum
           - file
           - directory
-          - array
         description: Parameter data type
       
       required:
@@ -231,7 +237,6 @@ definitions:
           - enum
           - file
           - directory
-          - array
         description: Parameter data type
       
       required:

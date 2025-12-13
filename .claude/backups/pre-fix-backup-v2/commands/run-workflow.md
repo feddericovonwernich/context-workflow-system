@@ -49,10 +49,6 @@ workflow-directory/
 └── phase-02-*.md          # Subsequent phases (at least one more)
 ```
 
-> **Minimum Phases**: A workflow requires at least 2 phase files. Valid configurations:
-> - `phase-01-*.md` + `phase-02-*.md` (standard)
-> - `phase-00-*.md` + `phase-01-*.md` (with setup phase)
-
 ### Optional Files
 ```
 workflow-directory/
@@ -112,9 +108,9 @@ phase_metadata:
       - name: FEATURE_SPEC
         required: true
         description: "Source specification document"
-      - name: VALIDATION_RULES
+      - name: CONSTITUTION_PATH
         required: false
-        description: "Validation rules document"
+        description: "Constitution for validation"
     parameters:
       - name: SPECS_DIR
         required: true
@@ -217,7 +213,7 @@ Detailed instructions for this step...
 2. Check command-line arguments
 3. If phase-00-setup.md exists:
    - Execute setup phase for parameter discovery
-   - Store discovered values in runtime-parameters.yaml
+   - Store discovered values in parameters.yaml
 4. Validate all required parameters are available
 5. Load default values for optional parameters
 ```
@@ -327,7 +323,7 @@ When `execution_mode: parallel` is set in phase metadata:
 
 4. Launch parallel agents:
    - Create Task tool invocations for each work item
-   - Use the agent_type specified in parallel_config (can be phase-executor or a specialized agent)
+   - Use specified agent_type (not phase-executor)
    - Pass work item via work_item_parameter
    - Include common parameters for all agents
    - Execute multiple agents in single message (for parallelism)
@@ -594,24 +590,24 @@ Task(
     ### Your Input Files
     Please read these files:
     - /workspace/specs/feature.md (FEATURE_SPEC)
-    - .claude/validation-rules.md (VALIDATION_RULES)
-
+    - .claude/constitution.md (CONSTITUTION_PATH)
+    
     ### Parameters
     - SPECS_DIR: outputs/specs/SPEC-001/
     - LANGUAGE_HINT: Python
     - FRAMEWORK_HINT: FastAPI
-
+    
     ### Your Task
     [Full phase instructions from phase-00-research.md]
-
+    
     ### Expected Outputs
     Create these files:
     - outputs/specs/SPEC-001/research.md
     - outputs/specs/SPEC-001/adrs/ADR-*.md
-
+    
     ### Success Criteria
     - All technical decisions documented
-    - Validation rules compliance verified
+    - Constitution alignment verified
     """
 )
 ```

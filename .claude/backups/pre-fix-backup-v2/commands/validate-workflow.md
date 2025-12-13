@@ -14,30 +14,28 @@ This command launches the workflow-validator agent to check:
 - Metadata completeness in all files
 - Parameter flow between phases
 - Documentation alignment with implementation
-- Specification compliance
+- Constitutional compliance
 
 ## Usage
 
 ```bash
-/validate-workflow <WORKFLOW_DIR>
+validate-workflow <WORKFLOW_DIR> [options]
 ```
 
 **Arguments:**
-- `WORKFLOW_DIR`: Path to workflow directory to validate
+- `WORKFLOW_DIR`: Path to workflow directory to validate (required)
 
-**Validation Modes** (specified in the prompt):
-- Request strict validation: Include "strict mode" or "treat warnings as errors" in your request
-- Request summary only: Ask for "summary" or "quick check"
-- Request JSON output: Ask for "JSON format" for CI/CD integration
-
-> **Note**: This is a slash command that launches the workflow-validator agent. Options are communicated through natural language in your request, not as CLI flags.
+**Options:**
+- `--strict-mode`: Treat warnings as errors (default: false)
+- `--check-templates`: Verify template references (default: true)
+- `--output-format`: Report format: detailed|summary|json (default: detailed)
 
 ## Examples
 
 ### Basic Validation
 ```bash
 # Validate a workflow with detailed report
-/validate-workflow .claude/workflows/technical-planning
+validate-workflow .claude/workflows/technical-planning
 
 # Example output:
 # ✓ VALID: Workflow structure correct
@@ -47,26 +45,24 @@ This command launches the workflow-validator agent to check:
 
 ### Strict Validation
 ```bash
-# Enforce all best practices (natural language request)
-/validate-workflow .claude/workflows/deployment
+# Enforce all best practices
+validate-workflow .claude/workflows/deployment --strict-mode
 
-# In your prompt, include: "Please use strict mode and treat warnings as errors"
+# Will fail if any warnings present
 ```
 
 ### Quick Check
 ```bash
 # Get summary only
-/validate-workflow .claude/workflows/testing
+validate-workflow .claude/workflows/testing --output-format=summary
 
-# In your prompt, add: "Please provide just a summary"
+# Output: VALID (45 checks passed, 2 warnings)
 ```
 
 ### CI/CD Integration
 ```bash
-# Request JSON output for tooling
-/validate-workflow .claude/workflows/migration
-
-# In your prompt, add: "Please output in JSON format for CI/CD integration"
+# JSON output for tooling
+validate-workflow .claude/workflows/migration --output-format=json > validation.json
 ```
 
 ## Validation Checks
@@ -90,7 +86,7 @@ This command launches the workflow-validator agent to check:
 - File references valid
 
 ### Quality Checks
-- Specification compliance
+- Constitutional compliance
 - Best practices followed
 - Documentation complete
 - Error handling present
@@ -187,20 +183,26 @@ FIX: Rename phase-04 to phase-03 or add missing phase
 ### With Workflow Creation
 ```bash
 # Create then validate
-/create-workflow spec.md --name feature-workflow
-/validate-workflow .claude/workflows/feature-workflow
+create-workflow spec.md --name feature-workflow
+validate-workflow .claude/workflows/feature-workflow
 ```
 
 ### With Workflow Execution
 ```bash
 # Validate before running
-/validate-workflow .claude/workflows/deployment
-# If validation passes, then run:
-/run-workflow .claude/workflows/deployment
+validate-workflow .claude/workflows/deployment
+if [ $? -eq 0 ]; then
+  workflow .claude/workflows/deployment
+fi
 ```
 
 ### With Version Control
-Note: For automated validation in scripts, consider using the validator agent directly via claude -p.
+```bash
+# Pre-commit hook
+for workflow in .claude/workflows/*/; do
+  validate-workflow "$workflow" --strict-mode
+done
+```
 
 ## Advanced Usage
 
@@ -215,19 +217,20 @@ custom_rules:
 ```
 
 ### Batch Validation
-To validate multiple workflows, run the command multiple times:
+Validate multiple workflows:
 ```bash
-/validate-workflow .claude/workflows/workflow-1
-/validate-workflow .claude/workflows/workflow-2
-/validate-workflow .claude/workflows/workflow-3
+# Validate all workflows
+for dir in .claude/workflows/*/; do
+  echo "Validating: $dir"
+  validate-workflow "$dir"
+done
 ```
 
 ### Validation Reports
 Generate validation report for documentation:
 ```bash
-/validate-workflow .claude/workflows/technical-planning
-
-# In your prompt, add: "Please provide a detailed report and format it for documentation"
+validate-workflow .claude/workflows/technical-planning \
+  --output-format=detailed > validation-report.md
 ```
 
 ## Troubleshooting
@@ -258,7 +261,7 @@ A well-validated workflow has:
 - Complete documentation
 - Clear parameter flow
 - Proper error handling
-- Specification compliance
+- Constitutional compliance
 
 ## See Also
 

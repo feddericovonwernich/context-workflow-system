@@ -1,42 +1,58 @@
+<!--
+PHASE TEMPLATE
+==============
+This template is used by workflow-creator to generate new phase files.
+
+PLACEHOLDER TYPES:
+1. Template Placeholders: ${VARIABLE_NAME} - Replaced by workflow-creator during generation
+   Examples: ${PHASE_NUMBER}, ${PHASE_NAME}, ${INPUT_FILE_PARAM}
+
+2. Runtime Parameters: $PARAM_NAME or ${PARAM_NAME} - Resolved during workflow execution
+   Examples: $OUTPUT_DIR, $SPECS_DIR, ${FEATURE_FILE}
+
+The workflow-creator replaces template placeholders with actual values.
+Runtime parameters remain as $PARAM references in the generated phase file.
+-->
+
 ---
 phase_metadata:
   # Execution mode: sequential (default) or parallel
   execution_mode: sequential
-  
+
   # For parallel execution, uncomment and configure:
   # parallel_config:
-  #   agent_type: ${AGENT_TYPE}  # e.g., feature-specifier
-  #   discovery_pattern: "${DISCOVERY_PATTERN}"  # e.g., "$OUTPUT_DIR/items/*.md"
-  #   work_item_parameter: ${WORK_ITEM_PARAM}  # e.g., WORK_ITEM_FILE
-  #   output_pattern: "${OUTPUT_PATTERN}"  # e.g., "$OUTPUT_DIR/results/{name}.md"
-  #   max_parallel: ${MAX_PARALLEL}  # e.g., 5 or 0 for unlimited
-  
+  #   agent_type: ${AGENT_TYPE}  # Template placeholder: workflow-creator fills this (e.g., "feature-specifier")
+  #   discovery_pattern: "${DISCOVERY_PATTERN}"  # Template placeholder: becomes runtime param pattern (e.g., "$OUTPUT_DIR/items/*.md")
+  #   work_item_parameter: ${WORK_ITEM_PARAM}  # Template placeholder: workflow-creator fills this (e.g., "WORK_ITEM_FILE")
+  #   output_pattern: "${OUTPUT_PATTERN}"  # Template placeholder: becomes runtime param pattern (e.g., "$OUTPUT_DIR/results/{name}.md")
+  #   max_parallel: ${MAX_PARALLEL}  # Template placeholder: workflow-creator fills this (e.g., 5 or 0 for unlimited)
+
   inputs:
     files:
       # List input files this phase needs
-      - name: ${INPUT_FILE_PARAM}  # Parameter name (e.g., FEATURE_SPEC)
+      - name: ${INPUT_FILE_PARAM}  # Template placeholder: workflow-creator fills this (e.g., becomes "FEATURE_SPEC")
         required: true  # Is this file required?
-        path: "${INPUT_FILE_PATH}"  # Optional: explicit path
-        description: "${INPUT_FILE_DESC}"  # What this file contains
-    
+        path: "${INPUT_FILE_PATH}"  # Template placeholder: becomes runtime param reference (e.g., "$OUTPUT_DIR/input.md")
+        description: "${INPUT_FILE_DESC}"  # Template placeholder: workflow-creator fills this with description
+
     parameters:
       # List input parameters this phase needs
-      - name: ${INPUT_PARAM}  # e.g., OUTPUT_DIR
+      - name: ${INPUT_PARAM}  # Template placeholder: workflow-creator fills this (e.g., becomes "OUTPUT_DIR")
         required: true  # Is this parameter required?
-        default: ${DEFAULT_VALUE}  # Optional: default value
-        description: "${INPUT_PARAM_DESC}"  # Parameter purpose
-  
+        default: ${DEFAULT_VALUE}  # Template placeholder: workflow-creator fills this (e.g., becomes "./outputs")
+        description: "${INPUT_PARAM_DESC}"  # Template placeholder: workflow-creator fills this with description
+
   outputs:
     files:
       # List files this phase will create
-      - path: "${OUTPUT_FILE_PATH}"  # e.g., "$OUTPUT_DIR/report.md"
-        description: "${OUTPUT_FILE_DESC}"  # What this file contains
-    
+      - path: "${OUTPUT_FILE_PATH}"  # Template placeholder: becomes runtime param reference (e.g., "$OUTPUT_DIR/report.md")
+        description: "${OUTPUT_FILE_DESC}"  # Template placeholder: workflow-creator fills this with description
+
     parameters:
       # List parameters this phase provides to next phases
-      - name: ${OUTPUT_PARAM}  # e.g., VALIDATION_PASSED
-        description: "${OUTPUT_PARAM_DESC}"  # What this parameter represents
-  
+      - name: ${OUTPUT_PARAM}  # Template placeholder: workflow-creator fills this (e.g., becomes "VALIDATION_PASSED")
+        description: "${OUTPUT_PARAM_DESC}"  # Template placeholder: workflow-creator fills this with description
+
   # Optional: Suggest a specific agent for this phase
   # preferred_agent: phase-executor
 ---
@@ -76,3 +92,25 @@ ${ROLLBACK_PLAN}
 ## Notes
 <!-- Optional: Additional context, warnings, or implementation guidance -->
 ${ADDITIONAL_NOTES}
+
+<!--
+EXAMPLE: After workflow-creator processes this template
+
+Template placeholders get replaced:
+- ${PHASE_NUMBER} → "01"
+- ${PHASE_NAME} → "Data Extraction"
+- ${INPUT_FILE_PARAM} → "SOURCE_FILE"
+
+Runtime parameters remain as references:
+- $OUTPUT_DIR → stays as "$OUTPUT_DIR" (resolved at runtime)
+- $SPECS_DIR → stays as "$SPECS_DIR" (resolved at runtime)
+
+The generated phase file might look like:
+phase_metadata:
+  inputs:
+    files:
+      - name: SOURCE_FILE
+        path: "$OUTPUT_DIR/source.md"
+
+When the workflow runs, $OUTPUT_DIR gets resolved to the actual path.
+-->

@@ -46,7 +46,7 @@ See `.claude/docs/SPECIFICATION.md#agent-constraints` for architectural rational
 - Create all expected output files
 - Ensure outputs follow specified formats
 - Include any discovered parameters for next phases
-- Report discovered parameters in your completion report (orchestrator handles file updates)
+- Update runtime-parameters.yaml if new parameters are discovered
 
 ### Step 5: Validation
 - Verify all success criteria are met

@@ -18,7 +18,7 @@ This command launches the workflow-creator agent which:
 ## Usage
 
 ```bash
-/create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
+create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
 ```
 
 **Arguments:**
@@ -26,14 +26,12 @@ This command launches the workflow-creator agent which:
 - `--name`: Name for the generated workflow
 - `--type`: Optional workflow type hint (deployment|testing|migration|build|data-processing|requirements-processing|technical-planning|setup|automation)
 
-> **Note**: This is a slash command that launches the workflow-creator agent. Arguments are passed naturally - for example: `/create-workflow spec.md requirements.md --name my-workflow`
-
 ## Examples
 
 ### Example 1: Generate from Feature Specification
 ```bash
 # Generate a development workflow from a feature spec
-/create-workflow outputs/specs/SPEC-001-pr-fetching/feature-spec.md \
+create-workflow outputs/specs/SPEC-001-pr-fetching/feature-spec.md \
   --name pr-fetching-implementation
 
 # The agent will:
@@ -46,7 +44,7 @@ This command launches the workflow-creator agent which:
 ### Example 2: Generate from Migration Plan
 ```bash
 # Generate a migration workflow from schema files and plan
-/create-workflow current-schema.sql target-schema.sql migration-plan.md \
+create-workflow current-schema.sql target-schema.sql migration-plan.md \
   --name database-v2-migration \
   --type migration
 
@@ -60,7 +58,7 @@ This command launches the workflow-creator agent which:
 ### Example 3: Generate from Test Requirements
 ```bash
 # Generate a testing workflow from test documentation
-/create-workflow test-requirements.md test-cases.yaml \
+create-workflow test-requirements.md test-cases.yaml \
   --name comprehensive-testing \
   --type testing
 
@@ -74,7 +72,7 @@ This command launches the workflow-creator agent which:
 ### Example 4: Generate from Multiple Sources
 ```bash
 # Generate a deployment workflow from various sources
-/create-workflow deployment-checklist.md \
+create-workflow deployment-checklist.md \
   config/production.yaml \
   scripts/deploy.sh \
   monitoring-requirements.md \
@@ -138,23 +136,19 @@ The agent automatically detects workflow type from content:
 | migrate, upgrade, transform | migration | analyze → backup → migrate → validate → cleanup |
 | build, compile, package | build | setup → compile → test → package → publish |
 | process, ETL, analyze | data-processing | ingest → validate → transform → process → output |
-| requirements, features, specs | requirements-processing | extract → analyze → structure → validate → output |
-| design, architecture, plan | technical-planning | research → design → document → review → finalize |
-| install, configure, initialize | setup | discover → validate → configure → verify → document |
-| automate, schedule, orchestrate | automation | define → configure → test → deploy → monitor |
 
 ## Customization
 
 ### Providing Type Hints
 Use `--type` to guide the agent:
 ```bash
-/create-workflow spec.md --name my-workflow --type deployment
+create-workflow spec.md --name my-workflow --type deployment
 ```
 
 ### Multiple Input Files
 Provide multiple files for richer context:
 ```bash
-/create-workflow requirements.md \
+create-workflow requirements.md \
   architecture.md \
   test-plan.md \
   deployment-guide.md \
@@ -222,7 +216,7 @@ After workflow generation:
 
 3. **Execute the workflow**:
    ```bash
-   /run-workflow .claude/workflows/<workflow-name> --environment=prod
+   run-workflow .claude/workflows/<workflow-name> --environment=prod
    ```
 
 ## Tips
