@@ -1,5 +1,5 @@
 ---
-name: workflow
+name: run-workflow
 description: "Execute multi-phase workflows from a specified directory"
 ---
 
@@ -19,23 +19,23 @@ This command provides a general-purpose workflow orchestration engine that:
 ## Usage
 
 ```bash
-workflow <WORKFLOW_DIR> [parameters...]
+run-workflow <WORKFLOW_DIR> [parameters...]
 ```
 
 **Arguments:**
-- `WORKFLOW_DIR`: Path to directory containing workflow phases (required)
+- `WORKFLOW_DIR`: Path to workflow directory containing workflow phases (required)
 - `parameters...`: Additional parameters passed to the workflow (optional)
 
 **Examples:**
 ```bash
 # Run a deployment workflow
-workflow .claude/workflows/deployment
+run-workflow .claude/workflows/deployment
 
 # Run with custom parameters
-workflow .claude/workflows/migration --database=prod --backup=true
+run-workflow .claude/workflows/migration --database=prod --backup=true
 
 # Run workflow from absolute path
-workflow /home/user/project/workflows/testing
+run-workflow /home/user/project/workflows/testing
 ```
 
 ## Workflow Structure

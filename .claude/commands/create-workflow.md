@@ -216,7 +216,7 @@ After workflow generation:
 
 3. **Execute the workflow**:
    ```bash
-   workflow .claude/workflows/<workflow-name> --environment=prod
+   run-workflow .claude/workflows/<workflow-name> --environment=prod
    ```
 
 ## Tips
@@ -267,7 +267,7 @@ If parameters are missing:
 ## Integration
 
 The generated workflows integrate with:
-- The multi-phase runner (`workflow` command)
+- The multi-phase runner (`run-workflow` command)
 - Todo management system
 - Parameter discovery
 - Logging and monitoring

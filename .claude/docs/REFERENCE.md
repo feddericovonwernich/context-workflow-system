@@ -6,7 +6,7 @@
 create-workflow <input-files...> --name <name> [--type <type>]
 
 # Execute a workflow
-workflow <workflow-dir> [parameters...]
+run-workflow <workflow-dir> [parameters...]
 
 # Validate a workflow
 validate-workflow <workflow-dir> [--strict-mode]
@@ -113,6 +113,7 @@ Instructions...
 | `string` | `"text"` | Text value |
 | `boolean` | `true` | True/false |
 | `integer` | `42` | Whole number |
+| `number` | `3.14` | Decimal number |
 | `enum` | `"prod"` | From list |
 | `file` | `"./file"` | File path |
 | `directory` | `"./dir"` | Dir path |
@@ -137,12 +138,11 @@ Instructions...
 - Requires parallel_config
 
 ## Agent Types
-- `phase-executor` - Default isolated executor
-- `workflow-creator` - Generates workflows
-- `workflow-validator` - Validates structure
-- `feature-specifier` - Feature → Spec
-- `spec-resolver` - Resolves clarifications
-- `requirements-splitter` - Splits requirements
+- `phase-executor` - Default isolated executor for running workflow phases
+- `workflow-creator` - Analyzes input files and generates complete workflows
+- `workflow-validator` - Validates workflow structure, metadata, and coherence
+
+Note: Custom specialized agents can be created and referenced in `parallel_config.agent_type` for domain-specific work.
 
 ## Critical Rules
 1. **No Nested Agents**: Agents cannot invoke other agents
@@ -184,8 +184,8 @@ prerequisites:
 ## File References
 - [Full Specification](SPECIFICATION.md)
 - [Introduction](INTRODUCTION.md)
-- [Workflow Schema](schemas/workflow-schema.yaml)
-- [Phase Schema](schemas/phase-metadata-schema.yaml)
+- [Workflow Schema](../schemas/workflow-schema.yaml)
+- [Phase Schema](../schemas/phase-metadata-schema.yaml)
 
 ## Troubleshooting
 

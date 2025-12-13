@@ -23,7 +23,7 @@ The system operates through two primary commands:
    - Creates all necessary configuration and phase files
    - Outputs to `.claude/workflows/<workflow-name>/`
 
-2. **`workflow`**: Executes multi-phase workflows with orchestrated agent isolation
+2. **`run-workflow`**: Executes multi-phase workflows with orchestrated agent isolation
    - Discovers and validates phase files
    - Resolves parameters and dependencies
    - Executes each phase via isolated agents
@@ -103,49 +103,14 @@ phase_metadata:
 
 #### Critical Agent Execution Constraints
 
-⚠️ **IMPORTANT: Agents CANNOT invoke other agents**. This is a fundamental architectural constraint:
-- Agents executed via the Task tool do NOT have access to the Task tool themselves
-- No nested agent execution is possible or supported
-- Phases cannot call sub-agents or delegate to other agents
-- Only the main Claude session or workflow orchestrator can invoke agents
+Agents CANNOT invoke other agents. This is a fundamental architectural constraint ensuring system stability, predictable execution, and debuggability.
 
-**Agent Invocation Hierarchy:**
-```
-User
- └── Claude (Main Session)
-      ├── Direct: Task tool → Agent (✅ Supported)
-      ├── Multiple: Task tools → Parallel Agents (✅ Supported)
-      └── Workflow Orchestrator
-           ├── Task tool → Phase-Executor Agent (✅ Supported)
-           └── Task tool → Specialized Agent (✅ Supported)
-           
-What's NOT Supported:
-Phase-Executor Agent → Another Agent (❌ Not Possible)
-Any Agent → Sub-Agent (❌ Not Possible)
-```
+**Key Points:**
+- Agents executed via Task tool do NOT have Task tool access themselves
+- No nested agent execution is possible
+- Complex work requiring multiple approaches must be designed as sequential phases
 
-This constraint ensures:
-- **System Stability**: No risk of infinite recursion or resource exhaustion
-- **Clear Execution Flow**: Predictable, linear workflow execution
-- **Debugging Simplicity**: Each phase executes in isolation
-- **Resource Control**: Orchestrator manages all agent invocations
-
-**What NOT to Do - Common Mistakes:**
-```bash
-# ❌ WRONG - Attempting nested agent calls inside a phase
-# This will NOT work in a phase file:
-"Use the Task tool to launch another agent..."  # Will fail
-
-# ❌ WRONG - Trying to invoke claude from within an agent
-claude -p "Run the technical-researcher agent..."  # Not possible
-
-# ✅ CORRECT - Design as sequential phases instead
-phase-01-research-database.md
-phase-02-research-authentication.md
-phase-03-compile-decisions.md
-```
-
-If complex work requires multiple specialized approaches, it should be designed as sequential phases, not nested agent calls.
+See [SPECIFICATION.md](SPECIFICATION.md#agent-constraints) for complete details and rationale.
 
 #### Parallel Agent Execution
 
@@ -382,10 +347,10 @@ create-workflow outputs/specs/feature-spec.md \
 
 ```bash
 # Run with default parameters
-workflow .claude/workflows/feature-implementation
+run-workflow .claude/workflows/feature-implementation
 
 # Run with custom parameters
-workflow .claude/workflows/deployment \
+run-workflow .claude/workflows/deployment \
   --environment=production \
   --backup=true
 ```
@@ -442,93 +407,10 @@ Start simple, add complexity:
 4. **Atomic Operations**: Can retry without side effects
 5. **Clear Documentation**: Self-explanatory instructions
 
-## Workflow Design Validation
+### Design Validation
 
-### Testing Checklist
-Before deploying a workflow, verify:
-- [ ] No phase attempts to invoke agents (no Task tool or claude commands)
-- [ ] Each phase has clear inputs/outputs defined in metadata
-- [ ] File paths are used for data sharing between phases
-- [ ] Parameters flow correctly between phases
-- [ ] Phases are independently retryable
-- [ ] No assumptions about agent context or conversation history
-- [ ] Success criteria are measurable and specific
-- [ ] Error handling is defined for each phase
-
-### Design Red Flags 🚫
-Watch out for these anti-patterns in your workflow:
-- **"Launch a sub-agent to..."** - Agents cannot invoke other agents
-- **"Use the Task tool to..."** - Not available within agents
-- **"Call another agent for..."** - Must be separate phases
-- **"Continue from previous context..."** - Agents have no shared context
-- **"claude -p" commands in phases** - Will not work
-- **Undefined file paths** - Always use explicit paths
-- **Missing error handling** - Every phase needs failure recovery
-
-### Design Green Flags ✅
-Good patterns to follow:
-- **"Read from $OUTPUT_DIR/previous-phase.json..."** - Explicit file I/O
-- **"Write results to $OUTPUT_DIR/results.md..."** - Clear output paths
-- **"Use $PARAMETER_NAME from previous phase..."** - Parameter flow
-- **"Process files generated in Phase 1..."** - File-based communication
-- **"If file not found, create default..."** - Error handling
-- **Sequential phase breakdown** - Complex work as multiple phases
-- **Parallel processing within phases** - Using execution_mode: parallel
-
-## Common Anti-Patterns and Solutions
-
-### Migration Guide: Fixing Nested Agent Calls
-
-If you have workflows that attempt to use nested agents, follow these steps:
-
-**Step 1: Identify Nested Calls**
-Look for these patterns in your phase files:
-```bash
-# ❌ These patterns indicate nested agent attempts
-"Use the Task tool to..."
-"Launch the technical-researcher agent..."
-"claude -p 'Run the spec-resolver agent...'"
-"Invoke another agent to process..."
-```
-
-**Step 2: Redesign as Sequential Phases**
-Break nested work into separate phases:
-```yaml
-# ❌ BEFORE: One phase trying to do everything
-phase-01-research.md: "Research database, auth, and API patterns using sub-agents"
-
-# ✅ AFTER: Sequential phases for each concern
-phase-01-research-database.md: "Research database options"
-phase-02-research-authentication.md: "Research authentication methods"  
-phase-03-research-api.md: "Research API patterns"
-phase-04-compile-decisions.md: "Create ADRs from research"
-```
-
-**Step 3: Use File-Based Communication**
-Replace agent-to-agent communication with file I/O:
-```bash
-# ❌ WRONG: Assuming shared context
-"Continue analysis from the previous agent's findings..."
-
-# ✅ CORRECT: Explicit file references
-"Read database research from $OUTPUT_DIR/database-analysis.json and continue..."
-```
-
-**Step 4: Update Phase Metadata**
-Define clear inputs and outputs:
-```yaml
----
-phase_metadata:
-  inputs:
-    files:
-      - name: DATABASE_RESEARCH
-        path: "$OUTPUT_DIR/database-analysis.json"
-        required: true
-  outputs:
-    files:
-      - path: "$OUTPUT_DIR/final-recommendations.md"
----
-```
+Before deploying a workflow, verify compliance with the specification.
+See [SPECIFICATION.md](SPECIFICATION.md#agent-constraints) for the complete checklist of constraints.
 
 ### Common Workflow Patterns
 
@@ -735,7 +617,7 @@ This architecture ensures that complex technical processes can be automated safe
 create-workflow <input-files...> --name <name> [--type <type>]
 
 # Execute a workflow
-workflow <workflow-dir> [parameters...]
+run-workflow <workflow-dir> [parameters...]
 ```
 
 ### File Structure
@@ -774,7 +656,8 @@ workflow <workflow-dir> [parameters...]
 
 - `string` - Text values
 - `boolean` - True/false flags
-- `integer` - Numeric values
+- `integer` - Whole numbers
+- `number` - Decimal/floating-point numbers
 - `enum` - Restricted choices
 - `file` - File paths
 - `directory` - Directory paths

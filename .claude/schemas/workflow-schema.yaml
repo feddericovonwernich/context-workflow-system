@@ -40,7 +40,7 @@ properties:
       - type: object
         description: Parameters as object with nested properties
         patternProperties:
-          "^[a-z][a-z0-9_]*$":
+          "^[A-Z][A-Z0-9_]*$":
             $ref: "#/definitions/parameterObject"
         additionalProperties: false
       - type: array
@@ -85,9 +85,8 @@ properties:
         default: phase-executor
         enum:
           - phase-executor
-          - technical-researcher
-          - feature-specifier
-          - spec-resolver
+          - workflow-creator
+          - workflow-validator
     
     additionalProperties: false
   
@@ -221,8 +220,8 @@ definitions:
     properties:
       name:
         type: string
-        pattern: "^[a-z][a-z0-9_]*$"
-        description: Parameter name in snake_case
+        pattern: "^[A-Z][A-Z0-9_]*$"
+        description: Parameter name in UPPER_SNAKE_CASE
       
       type:
         type: string

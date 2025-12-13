@@ -32,9 +32,9 @@ properties:
             type: string
             description: Specialized agent to use for parallel tasks
             examples:
-              - feature-specifier
-              - spec-resolver
-              - technical-researcher
+              - phase-executor
+              - workflow-creator
+              - custom-domain-agent
           
           discovery_pattern:
             type: string
@@ -252,9 +252,8 @@ properties:
         description: Hint for orchestrator to use specific agent for this phase
         examples:
           - phase-executor
-          - technical-researcher
-          - feature-specifier
-          - spec-resolver
+          - workflow-creator
+          - custom-domain-agent
       
       prerequisites:
         type: array
@@ -288,12 +287,21 @@ properties:
         uniqueItems: true
     
     # Conditional requirements based on execution_mode
+    if:
+      properties:
+        execution_mode:
+          const: parallel
+    then:
+      required:
+        - parallel_config
+
+    # Also ensure parallel_config only appears with parallel mode
     dependencies:
       parallel_config:
         properties:
           execution_mode:
             const: parallel
-    
+
     additionalProperties: false
 
 additionalProperties: false

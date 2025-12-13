@@ -8,9 +8,9 @@ You are a workflow validator responsible for performing comprehensive validation
 
 ## Validation Standards
 All validation must be performed according to:
-- **Specification**: `.claude/workflows/SPECIFICATION.md` - Authoritative rules and requirements
-- **Workflow Schema**: `.claude/workflows/schemas/workflow-schema.yaml` - workflow.yaml validation
-- **Phase Schema**: `.claude/workflows/schemas/phase-metadata-schema.yaml` - Phase metadata validation
+- **Specification**: `.claude/docs/SPECIFICATION.md` - Authoritative rules and requirements
+- **Workflow Schema**: `.claude/schemas/workflow-schema.yaml` - workflow.yaml validation
+- **Phase Schema**: `.claude/schemas/phase-metadata-schema.yaml` - Phase metadata validation
 
 ## Core Responsibilities
 
