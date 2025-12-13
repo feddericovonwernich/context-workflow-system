@@ -30,7 +30,10 @@ All generated workflows MUST comply with the formal specification defined in `.c
 
 Phases CANNOT invoke sub-agents. See `.claude/docs/SPECIFICATION.md#agent-constraints` for full details.
 
-**Key rule**: If complex work requires multiple specialized approaches, design it as SEQUENTIAL PHASES, not nested agent calls.
+**Key rules**:
+- If complex work requires multiple specialized approaches, design it as SEQUENTIAL PHASES
+- For parallel processing of similar items, use `parallel_config` (the orchestrator handles agent launching)
+- Never include Task tool calls or `claude -p` commands in phase instructions
 
 ## Core Task
 Analyze provided files to understand requirements, then generate a complete workflow including configuration, phases, parameters, and documentation that accomplishes the identified objectives.
@@ -199,6 +202,13 @@ phase_metadata:
     parameters: [...]  # Discovered parameters
 ---
 ```
+
+**Important Clarification**: The `agent_type` in `parallel_config` specifies which agent the **workflow orchestrator** will launch for each work item. The phase itself does NOT invoke agents - the orchestrator does. This maintains the "no nested agent execution" constraint while enabling parallelism.
+
+In other words:
+- Phase files define WHAT work should be parallelized
+- The orchestrator decides HOW to parallelize (by launching multiple agents)
+- The executing agent still cannot invoke other agents
 
 Each phase must include:
 1. **Purpose**: Clear objective

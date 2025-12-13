@@ -163,6 +163,7 @@ properties:
                     - enum
                     - file
                     - directory
+                    - array
               
               additionalProperties: false
             

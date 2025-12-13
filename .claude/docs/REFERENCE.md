@@ -15,15 +15,15 @@ validate-workflow <workflow-dir> [--strict-mode]
 ## Directory Structure
 ```
 workflow-directory/
-├── workflow.yaml          # REQUIRED: Configuration
-├── phase-01-*.md         # REQUIRED: First phase
-├── phase-02-*.md         # REQUIRED: Second phase
-├── phase-00-*.md         # Optional: Setup phase
-├── README.md             # Recommended: Documentation
-└── examples/             # Optional: Examples
+├── workflow.yaml              # REQUIRED: Configuration
+├── phase-XX-*.md             # REQUIRED: At least 2 phases
+├── README.md                  # Recommended: Documentation
+├── runtime-parameters.yaml    # GENERATED: Runtime state
+├── execution.log              # GENERATED: Execution log
+└── examples/                  # Optional: Examples
 ```
 
-> **Minimum**: 2 phase files required. Can be `phase-00` + `phase-01` OR `phase-01` + `phase-02`.
+> **Minimum Phases**: 2 required. Can be `phase-00` + `phase-01` OR `phase-01` + `phase-02`.
 
 ## workflow.yaml Structure
 ```yaml

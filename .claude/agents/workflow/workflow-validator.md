@@ -71,7 +71,7 @@ Validate presence of:
 ```yaml
 Each parameter must have:
 - name: string (valid identifier)
-- type: enum [string, boolean, integer, enum, file, directory]
+- type: enum [string, boolean, integer, number, enum, file, directory, array]
 - required: boolean
 - description: string
 Optional:
@@ -154,7 +154,6 @@ Trace parameter flow:
 #### File Reference Validation
 Check all referenced:
 - Template files exist
-- Constitution files exist
 - Input files are accessible
 - Output directories are valid
 

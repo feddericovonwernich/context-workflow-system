@@ -84,8 +84,10 @@ MAX_RETRIES: 3
 
 **Usage**:
 ```bash
-# Use example parameters directly
-run-workflow .claude/workflows/my-workflow --params examples/parameters.yaml
+# Run workflow with explicit parameters
+run-workflow .claude/workflows/my-workflow --ENVIRONMENT=production --OUTPUT_DIR=./outputs
+
+# Note: Direct parameter file loading (--params) is planned for a future release
 ```
 
 ### Phases
@@ -678,7 +680,8 @@ run-workflow <workflow-dir> [parameters...]
         ├── workflow.yaml
         ├── README.md
         ├── phase-*.md
-        ├── runtime-parameters.yaml
+        ├── runtime-parameters.yaml  # GENERATED
+        ├── execution.log            # GENERATED
         └── examples/
 ```
 

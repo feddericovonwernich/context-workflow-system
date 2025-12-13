@@ -215,11 +215,15 @@ Detailed instructions for this step...
 ```
 1. Parse workflow.yaml for required parameters
 2. Check command-line arguments
-3. If phase-00-setup.md exists:
+3. Check environment variables:
+   - Parameters can be set via environment variables with `WORKFLOW_` prefix
+   - Example: `WORKFLOW_OUTPUT_DIR` sets the `OUTPUT_DIR` parameter
+   - Environment variables take precedence over defaults but not CLI args
+4. If phase-00-setup.md exists:
    - Execute setup phase for parameter discovery
    - Store discovered values in runtime-parameters.yaml
-4. Validate all required parameters are available
-5. Load default values for optional parameters
+5. Validate all required parameters are available
+6. Load default values for optional parameters
 ```
 
 ### 3. Todo List Initialization
@@ -333,6 +337,9 @@ When `execution_mode: parallel` is set in phase metadata:
    - Execute multiple agents in single message (for parallelism)
 
 5. Example parallel invocation:
+
+   > **Note**: The following examples use pseudocode syntax to illustrate the Task tool invocation pattern. The actual Claude Code tool call syntax differs.
+
    ```python
    # Launch multiple agents in one message for true parallelism
    Task(
@@ -341,7 +348,7 @@ When `execution_mode: parallel` is set in phase metadata:
        prompt="Transform FEAT-001-pr-fetching.md to specification..."
    )
    Task(
-       subagent_type="feature-specifier", 
+       subagent_type="feature-specifier",
        description="Process FEAT-002",
        prompt="Transform FEAT-002-check-analysis.md to specification..."
    )
@@ -583,6 +590,9 @@ Each phase is executed in an isolated agent context via the Task tool:
 - **Traceability**: Complete record of what each phase received and produced
 
 ### Example Task Tool Invocation
+
+> **Note**: The following examples use pseudocode syntax to illustrate the Task tool invocation pattern. The actual Claude Code tool call syntax differs.
+
 ```python
 # Orchestrator invokes Task tool for each phase:
 Task(
@@ -590,7 +600,7 @@ Task(
     description="Execute Phase 00: Research & Discovery",
     prompt="""
     ## Phase: Research & Discovery
-    
+
     ### Your Input Files
     Please read these files:
     - /workspace/specs/feature.md (FEATURE_SPEC)

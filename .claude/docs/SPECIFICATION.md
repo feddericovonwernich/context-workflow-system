@@ -105,7 +105,7 @@ version: string                 # Semantic version (X.Y.Z)
 # OPTIONAL SECTIONS
 parameters:                     # Parameter definitions
   <parameter_name>:            # Or array format (see below)
-    type: string               # string|boolean|integer|number|enum|file|directory
+    type: string               # string|boolean|integer|number|enum|file|directory|array
     required: boolean          # Is parameter required?
     description: string        # Human-readable description
     default: any              # Default value (type must match)
