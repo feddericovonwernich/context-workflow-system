@@ -161,9 +161,9 @@ The main Claude session can invoke multiple agents in parallel by using multiple
 
 ```python
 # Main Claude can launch multiple agents simultaneously
-Task(subagent_type="requirements-splitter", prompt="Process requirements doc A...")
-Task(subagent_type="feature-specifier", prompt="Process feature file B...")
-Task(subagent_type="spec-resolver", prompt="Resolve clarifications in spec C...")
+Task(subagent_type="workflow-creator", prompt="Generate workflow from spec A...")
+Task(subagent_type="workflow-creator", prompt="Generate workflow from spec B...")
+Task(subagent_type="workflow-validator", prompt="Validate workflow C...")
 # All three agents run in parallel
 ```
 

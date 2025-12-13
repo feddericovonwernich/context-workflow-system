@@ -407,29 +407,7 @@ Expected Outputs:
 [in progress] Setting up deployment environment...
 [completed] ✓ Environment ready
 
-───────────────────────────────────────────────────────
-▶ PHASE 2 of 4: Deployment Execution
-───────────────────────────────────────────────────────
-
-═══════════════════════════════════════════════════════
-PHASE 2: Deployment Execution
-═══════════════════════════════════════════════════════
-Input Files:
-  - PREPARED_ENV: /workspace/temp/prepared-environment.yaml
-  - DEPLOYMENT_SPEC: /workspace/deploy/spec.yaml
-
-Parameters:
-  - environment: production
-  - backup: true
-  - parallel_jobs: 4
-  - ENV_READY: true    # From Phase 1
-
-Expected Outputs:
-  - /workspace/logs/deployment.log
-  - /workspace/status/deployment-status.yaml
-═══════════════════════════════════════════════════════
-
-...
+[Phases 2-4 follow same pattern...]
 ```
 
 **CRITICAL REQUIREMENT:** The parameter display box with ═══ borders MUST be shown in your main response before each Task tool invocation. This ensures users can see what parameters are being passed to each phase.

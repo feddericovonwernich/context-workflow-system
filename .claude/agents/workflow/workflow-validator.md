@@ -147,7 +147,7 @@ For both input and output parameters, validate that the `type` field (when prese
 - Type is optional in phase metadata but recommended for clarity
 
 #### Content Structure Validation
-Required sections (in order, per SPECIFICATION.md):
+Required sections in order (authoritative source: SPECIFICATION.md#validation-rules):
 ```
 1. Phase metadata (YAML frontmatter)
 2. # Phase [Number]: [Name]
@@ -164,6 +164,8 @@ Required sections (in order, per SPECIFICATION.md):
 Optional sections (recommended for complex phases):
 - ## Rollback Plan
 - ## Notes
+
+*Note: If SPECIFICATION.md changes, update this checklist to match.*
 
 ### Phase 5: README Coherence Validation
 
