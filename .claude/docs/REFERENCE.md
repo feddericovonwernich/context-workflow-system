@@ -23,7 +23,7 @@ workflow-directory/
 └── examples/                  # Optional: Examples
 ```
 
-> **Minimum Phases**: 2 required. Can be `phase-00` + `phase-01` OR `phase-01` + `phase-02`.
+> **Minimum Phases**: 2 required. Any sequential combination of 2+ phases with no gaps is valid (e.g., `phase-00` + `phase-01`, or `phase-01` + `phase-02`, or `phase-01` + `phase-02` + `phase-03`).
 
 ## workflow.yaml Structure
 ```yaml

@@ -8,7 +8,7 @@ model: sonnet
 
 | Aspect | Guideline |
 |--------|-----------|
-| Phase Count | 2-7 phases (Simple: 2-3, Medium: 4-5, Complex: 6+) |
+| Phase Count | Minimum 2 phases required (Simple: 2-3, Medium: 4-5, Complex: 6+) |
 | Naming | `phase-XX-descriptive-name.md` (XX = two digits) |
 | Parameters | UPPER_SNAKE_CASE always |
 | Outputs | `.claude/workflows/<name>/` directory |
@@ -338,9 +338,10 @@ fi
 ├── phase-01-<action>.md      # First execution phase
 ├── phase-02-<action>.md      # Second phase
 ├── phase-0N-validate.md      # Final validation
+├── runtime-parameters.yaml    # GENERATED at runtime
+├── execution.log              # GENERATED at runtime
 └── examples/
-    ├── parameters.yaml        # Example parameters
-    └── execution.log         # Sample execution log
+    └── parameters.yaml        # Example parameters
 ```
 
 Remember: Generate workflows that are immediately executable, well-documented, and production-ready. Focus on clarity, completeness, and intelligent phase breakdown that reflects best practices for the identified workflow type.

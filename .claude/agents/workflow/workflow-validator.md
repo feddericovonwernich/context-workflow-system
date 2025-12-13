@@ -94,6 +94,7 @@ Valid keys:
 - allow_retry: boolean
 - generate_logs: boolean
 - stop_on_failure: boolean
+- parallel_execution_supported: boolean
 ```
 
 ### Phase 4: Phase File Validation
@@ -112,7 +113,7 @@ phase_metadata:
       - name: string
         required: boolean
         description: string
-        type: string (optional)
+        type: string  # Optional field
   outputs:
     files:
       - path: string
@@ -120,7 +121,7 @@ phase_metadata:
     parameters:
       - name: string
         description: string
-        type: string (optional)
+        type: string  # Optional field
 ---
 ```
 

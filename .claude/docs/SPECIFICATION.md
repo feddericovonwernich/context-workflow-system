@@ -142,7 +142,7 @@ metadata:                      # Workflow metadata
 Parameters can also be defined as an array:
 ```yaml
 parameters:
-  - name: environment
+  - name: ENVIRONMENT
     type: string
     required: true
     description: "Target environment"
@@ -187,12 +187,13 @@ phase_metadata:
         required: boolean     # Is this file required?
         path: string          # Optional: explicit path (can use parameters)
         description: string   # What this file contains
-    
+
     parameters:               # Input parameter specifications
       - name: string         # Parameter name
         required: boolean    # Is this parameter required?
         default: any         # Optional: default value
         description: string  # Parameter purpose
+        type: string         # Optional: expected type (string|boolean|integer|number|enum|file|directory|array)
   
   # Output specifications
   outputs:
@@ -618,6 +619,36 @@ Workflows can be validated against formal schemas:
 - `workflow-schema.yaml` - Validates workflow.yaml structure
 - `phase-metadata-schema.yaml` - Validates phase metadata
 - Use `validate-workflow` command for comprehensive checks
+
+## Future Features (Not Implemented)
+
+The following features are planned but not currently supported. They are documented in INTRODUCTION.md for illustration purposes only.
+
+### Phase Groups (Concurrent Phase Execution)
+```yaml
+# FUTURE FEATURE - NOT YET SUPPORTED
+phase_groups:
+  - [phase-02a-api.md, phase-02b-ui.md, phase-02c-db.md]
+```
+**Status**: All phases execute sequentially in numeric order. Use `execution_mode: parallel` within individual phases for concurrent work item processing.
+
+### Dynamic Phase Generation
+```yaml
+# FUTURE FEATURE - NOT YET SUPPORTED
+dynamic_phases:
+  enabled: true
+  generator: phase-00-analyze.md
+```
+**Status**: All phases must be defined statically in phase files.
+
+### Cross-Workflow Dependencies
+```yaml
+# FUTURE FEATURE - NOT YET SUPPORTED
+dependencies:
+  - workflow: prerequisites
+    outputs: [config.yaml, setup.log]
+```
+**Status**: Each workflow operates independently. Run workflows in sequence manually.
 
 ## Version History
 

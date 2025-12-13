@@ -76,18 +76,18 @@ description: "Deploy application to production environment"
 version: 1.0.0
 
 parameters:
-  - name: environment
+  - name: ENVIRONMENT
     type: string
     required: true
     description: "Target deployment environment"
-    
-  - name: backup
+
+  - name: BACKUP
     type: boolean
     required: false
     default: true
     description: "Create backup before deployment"
-    
-  - name: parallel_jobs
+
+  - name: PARALLEL_JOBS
     type: integer
     required: false
     default: 4

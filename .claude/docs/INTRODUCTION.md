@@ -588,7 +588,7 @@ Phases can include conditions:
 ```yaml
 prerequisites:
   - condition: "$ENVIRONMENT == 'production'"
-    action: "require_approval"
+    action: require_approval
 ```
 
 ### Parallel Agent Execution Within Phases
@@ -627,21 +627,31 @@ phase_groups:
 
 ### Dynamic Phase Generation
 
-Workflows can generate additional phases:
+> **NOT IMPLEMENTED**: This feature is planned for a future release and is not currently available. The syntax below is for illustration only.
+
+Workflows could theoretically generate additional phases at runtime:
 ```yaml
+# FUTURE FEATURE - NOT YET SUPPORTED
 dynamic_phases:
   enabled: true
   generator: phase-00-analyze.md
 ```
 
+**Current Status**: All phases must be defined statically in phase files. Dynamic generation is not supported.
+
 ### Cross-Workflow Dependencies
 
-Workflows can reference others:
+> **NOT IMPLEMENTED**: This feature is planned for a future release and is not currently available. The syntax below is for illustration only.
+
+Workflows could theoretically reference outputs from other workflows:
 ```yaml
+# FUTURE FEATURE - NOT YET SUPPORTED
 dependencies:
   - workflow: prerequisites
     outputs: [config.yaml, setup.log]
 ```
+
+**Current Status**: Each workflow operates independently. Cross-workflow dependencies must be managed manually by running workflows in sequence.
 
 ## Summary
 
