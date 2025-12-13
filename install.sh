@@ -60,7 +60,6 @@ WORKFLOW_FILES=(
     "schemas/phase-metadata-schema.yaml"
     "schemas/workflow-schema.yaml"
     "templates/phase-template.md"
-    "settings.local.json"
 )
 
 # Print functions
@@ -178,43 +177,6 @@ backup_file() {
     info "Backed up: $file -> $backup_path"
 }
 
-# Merge settings.local.json instead of overwriting
-merge_settings() {
-    local source="$1"
-    local target="$2"
-
-    if [[ ! -f "$target" ]]; then
-        return 1  # No merge needed, just copy
-    fi
-
-    # If jq is available, do a proper merge
-    if command -v jq &> /dev/null; then
-        if $DRY_RUN; then
-            info "Would merge settings.local.json (preserving existing permissions)"
-            return 0
-        fi
-
-        # Merge: existing file takes precedence for permissions, but add new ones from source
-        local merged
-        merged=$(jq -s '
-            .[0] as $existing |
-            .[1] as $new |
-            ($existing.permissions // []) as $existingPerms |
-            ($new.permissions // []) as $newPerms |
-            $existing * $new * {
-                permissions: ($existingPerms + ($newPerms | map(select(. as $p | $existingPerms | index($p) | not))))
-            }
-        ' "$target" "$source")
-
-        echo "$merged" > "$target"
-        info "Merged settings.local.json (added new permissions, preserved existing)"
-        return 0
-    else
-        warn "jq not found - will backup and replace settings.local.json instead of merging"
-        return 1
-    fi
-}
-
 # Install a single file
 install_file() {
     local source="$1"
@@ -234,14 +196,6 @@ install_file() {
 
     # Handle existing file
     if [[ -f "$target" ]]; then
-        # Special handling for settings.local.json
-        if [[ "$target" == ".claude/settings.local.json" ]]; then
-            if merge_settings "$source" "$target"; then
-                ((++UPDATED))
-                return 0
-            fi
-        fi
-
         if $FORCE; then
             if $DRY_RUN; then
                 info "Would overwrite: $target (--force)"
