@@ -55,7 +55,7 @@ phase_metadata:
   # For parallel execution:
   parallel_config:
     agent_type: feature-specifier
-    discovery_pattern: "$OUTPUT_DIR/features/*.md"
+    discovery_pattern: "$OUTPUT_DIR/features/FEAT-*.md"
     work_item_parameter: FEATURE_FILE
     output_pattern: "$OUTPUT_DIR/specs/{name}-spec.md"
     max_parallel: 5
@@ -131,8 +131,8 @@ Instructions...
 
 ## Parameter Resolution Order
 1. CLI arguments (highest)
-2. Environment variables
-3. Previous phase outputs
+2. Environment variables (`WORKFLOW_` prefix, e.g., `WORKFLOW_OUTPUT_DIR`)
+3. Previous phase outputs (runtime-parameters.yaml)
 4. workflow.yaml defaults
 5. Phase metadata defaults
 
@@ -199,7 +199,7 @@ parallel_config:
 ### Conditional Execution
 ```yaml
 prerequisites:
-  - condition: "$ENV == 'prod'"
+  - condition: "$ENVIRONMENT == 'production'"
     action: require_approval
 ```
 

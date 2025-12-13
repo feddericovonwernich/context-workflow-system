@@ -1,8 +1,8 @@
 # JSON Schema for phase metadata validation
 # This schema defines the structure and validation rules for phase file metadata sections
 $schema: http://json-schema.org/draft-07/schema#
-# Note: $id is a local identifier for schema references, not a resolvable URL
-$id: https://claude.ai/workflows/schemas/phase-metadata.yaml
+# Local identifier for schema references (not a resolvable URL)
+$id: urn:claude-workflow:schema:phase-metadata:v1
 title: Phase Metadata Schema
 description: Schema for validating phase file metadata sections in Claude workflows
 type: object
@@ -164,14 +164,34 @@ properties:
                     - file
                     - directory
                     - array
-              
+
+                enum:
+                  type: array
+                  description: Valid values when type is enum
+                  items:
+                    type: string
+                  minItems: 2
+                  uniqueItems: true
+
+              # Require enum field when type is enum
+              allOf:
+                - if:
+                    properties:
+                      type:
+                        const: enum
+                    required:
+                      - type
+                  then:
+                    required:
+                      - enum
+
               additionalProperties: false
-            
+
             minItems: 0
             uniqueItems: true
-        
+
         additionalProperties: false
-      
+
       outputs:
         type: object
         description: Output specifications for this phase
@@ -245,16 +265,36 @@ properties:
                     - boolean
                     - integer
                     - number
-                    - array
                     - enum
                     - file
                     - directory
-              
+                    - array
+
+                enum:
+                  type: array
+                  description: Valid values when type is enum
+                  items:
+                    type: string
+                  minItems: 2
+                  uniqueItems: true
+
+              # Require enum field when type is enum
+              allOf:
+                - if:
+                    properties:
+                      type:
+                        const: enum
+                    required:
+                      - type
+                  then:
+                    required:
+                      - enum
+
               additionalProperties: false
-            
+
             minItems: 0
             uniqueItems: true
-        
+
         additionalProperties: false
       
       preferred_agent:

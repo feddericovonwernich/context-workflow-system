@@ -28,12 +28,7 @@ All generated workflows MUST comply with the formal specification defined in `.c
 
 ## CRITICAL CONSTRAINT: No Nested Agent Execution
 
-Phases CANNOT invoke sub-agents. See `.claude/docs/SPECIFICATION.md#agent-constraints` for full details.
-
-**Key rules**:
-- If complex work requires multiple specialized approaches, design it as SEQUENTIAL PHASES
-- For parallel processing of similar items, use `parallel_config` (the orchestrator handles agent launching)
-- Never include Task tool calls or `claude -p` commands in phase instructions
+Phases CANNOT invoke sub-agents. See `.claude/docs/SPECIFICATION.md#agent-constraints` for full details. Design complex work as sequential phases; use `parallel_config` for concurrent item processing (orchestrator handles agent launching).
 
 ## Core Task
 Analyze provided files to understand requirements, then generate a complete workflow including configuration, phases, parameters, and documentation that accomplishes the identified objectives.
@@ -280,55 +275,31 @@ Examples: Processing multiple feature files, deploying to multiple regions, runn
 **Phases**: Setup → Dependencies → Compile → Test → Package → Publish
 **Focus**: Reproducibility, artifact management, versioning
 
-## Patterns to Avoid in Generated Phases
-NEVER include these patterns in generated phases:
-- `claude -p` commands or any CLI invocation of claude
-- "Launch a sub-agent to..."
-- "Use the Task tool to invoke..."
-- "Call the technical-researcher agent..."
-- Any mention of invoking, calling, or launching agents
-- Attempts to use the Task tool within phases
-- References to "sub-agents" or "nested agents"
-- Bash script syntax like `if [ condition ]; then` outside of example blocks
-- Shell loops like `for file in "${files[@]}"; do` as direct instructions
-- Direct bash commands as the main instruction format
+## Phase Content Guidelines
 
-Instead, use these patterns:
+### Patterns to AVOID
+Phases are markdown instructions, not scripts. Never include:
+- Agent invocation patterns (`claude -p`, Task tool calls, "launch sub-agent")
+- Bash script syntax as primary instructions (reserve for example blocks only)
+
+### Patterns to USE
+Write prose instructions the phase-executor agent interprets:
 - "Read the analysis from $OUTPUT_DIR/analysis.md"
-- "Process the data and write results to..."
-- "Execute the following validation steps..."
-- "Generate ADRs based on the requirements..."
-- Direct task execution without agent invocation
-- "Verify that the requirements document exists at REQUIREMENTS_DOC path"
-- "For each feature file, validate its structure and content"
+- "For each feature file, validate its structure"
 - "If errors are encountered, document them in the error log"
 
-## Example: CORRECT vs INCORRECT Phase Format
+### Format Example
 
-### INCORRECT (Bash Script Format):
+**Incorrect** (bash script):
 ```bash
-# Step 1: Validate
-if [ ! -f "$REQUIREMENTS_DOC" ]; then
-    echo "ERROR: Not found"
-    exit 1
-fi
+if [ ! -f "$REQUIREMENTS_DOC" ]; then exit 1; fi
 ```
 
-### CORRECT (Markdown Instructions Format):
+**Correct** (markdown instructions):
 ```markdown
 ### Step 1: Validate Input
-
-1. **Verify Requirements Document**:
-   - Check that the file exists at the path specified by REQUIREMENTS_DOC parameter
-   - Ensure the file is readable and contains content
-   - If the file is missing or empty, report an error and stop execution
-
-2. **Validate Feature Files**:
-   - For each feature file in FEATURES_DIR:
-     - Verify proper header (starts with "# Feature")
-     - Check for required sections
-     - Document any validation errors
-   - Create a validation report listing all checked files
+1. Verify the file exists at REQUIREMENTS_DOC path
+2. If missing or empty, report an error and stop execution
 ```
 
 ## Output Directory Structure

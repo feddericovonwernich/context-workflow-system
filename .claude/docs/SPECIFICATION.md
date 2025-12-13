@@ -8,9 +8,13 @@ This document is the authoritative specification for the Claude Workflow Orchest
 3. [Workflow Configuration Schema](#workflow-configuration-schema)
 4. [Phase Metadata Schema](#phase-metadata-schema)
 5. [Parameter Specifications](#parameter-specifications)
-6. [Execution Modes](#execution-modes)
-7. [Validation Rules](#validation-rules)
-8. [Agent Constraints](#agent-constraints)
+6. [Runtime File Specifications](#runtime-file-specifications)
+7. [Execution Modes](#execution-modes)
+8. [Validation Rules](#validation-rules)
+9. [Agent Constraints](#agent-constraints)
+10. [Validation Severity Levels](#validation-severity-levels)
+11. [Schema Validation](#schema-validation)
+12. [Future Features](#future-features-not-implemented)
 
 ## System Architecture
 
@@ -205,7 +209,7 @@ phase_metadata:
     parameters:             # Output parameter specifications
       - name: string       # Parameter name for next phases
         description: string # What this parameter represents
-        required: boolean   # Whether this parameter is guaranteed to be set (default: true)
+        required: boolean   # Whether this output is guaranteed (default: true)
         type: string       # Parameter type (string|boolean|integer|number|enum|file|directory|array)
   
   # Optional: Agent preferences
@@ -278,7 +282,65 @@ path: "$OUTPUT_DIR/$SPECS_DIR/report.md"
 - **Examples**: `OUTPUT_DIR`, `MAX_RETRIES`, `ENABLE_LOGGING`
 - **Reserved**: Avoid `PHASE_`, `WORKFLOW_`, `SYSTEM_` prefixes
 
-## Runtime File Specifications
+### Advanced Parameter Validation
+
+Parameters support additional validation constraints beyond basic types:
+
+| Property | Applies To | Description | Example |
+|----------|------------|-------------|---------|
+| `min` | integer, number | Minimum allowed value | `min: 1` |
+| `max` | integer, number | Maximum allowed value | `max: 100` |
+| `pattern` | string | Regex pattern for validation | `pattern: "^[a-z-]+$"` |
+
+**Example with validation constraints**:
+```yaml
+parameters:
+  MAX_RETRIES:
+    type: integer
+    required: false
+    default: 3
+    min: 1
+    max: 10
+    description: "Number of retry attempts (1-10)"
+
+  WORKFLOW_ID:
+    type: string
+    required: true
+    pattern: "^wf-[a-z0-9-]+$"
+    description: "Workflow identifier (must start with 'wf-')"
+```
+
+## Runtime File Specifications {#runtime-file-specifications}
+
+### Template vs Runtime Parameter Interpolation
+
+When creating phase files (either manually or via workflow-creator), understand the distinction between two types of placeholders:
+
+| Placeholder Type | Syntax | Resolved When | Example |
+|-----------------|--------|---------------|---------|
+| **Template placeholders** | `${VARIABLE}` | During workflow generation | `${PHASE_NUMBER}`, `${PHASE_NAME}` |
+| **Runtime parameters** | `$PARAM` or `${PARAM}` | During workflow execution | `$OUTPUT_DIR`, `${SPECS_DIR}` |
+
+**Template placeholders** (used in `.claude/templates/phase-template.md`):
+- Replaced by workflow-creator agent when generating phase files
+- Use descriptive names like `${PHASE_PURPOSE}`, `${TASKS_LIST}`
+- Result in static content in the generated phase file
+
+**Runtime parameters** (used in generated phase files):
+- Remain as `$PARAM` references in generated files
+- Resolved by the orchestrator during workflow execution
+- Follow UPPER_SNAKE_CASE naming convention
+
+**Example transformation**:
+```yaml
+# In template (phase-template.md):
+- name: ${INPUT_FILE_PARAM}           # Template placeholder
+  path: "${INPUT_FILE_PATH}"          # Becomes runtime param reference
+
+# After generation (phase-01-extract.md):
+- name: SOURCE_DATA                   # Static value from template
+  path: "$OUTPUT_DIR/source.json"     # Runtime parameter reference
+```
 
 ### Phase Completion Protocol
 

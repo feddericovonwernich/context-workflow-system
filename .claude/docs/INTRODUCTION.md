@@ -331,6 +331,10 @@ phase_metadata:
 1. First task to complete
 2. Second task to complete
 
+## Parameters Used
+- `PARAM_NAME`: How this parameter is used in this phase
+- `OTHER_PARAM`: Description of usage
+
 ## Process
 ### Step 1: [Action]
 Detailed instructions...
@@ -617,7 +621,7 @@ Benefits:
 - Maintains isolation between parallel executions
 - Aggregates results for next phases
 
-### Sequential Phase Groups
+### Concurrent Phase Groups
 
 > **NOT IMPLEMENTED**: This feature is planned for a future release and is not currently available. The syntax below is for illustration only.
 

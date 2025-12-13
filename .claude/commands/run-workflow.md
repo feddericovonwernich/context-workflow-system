@@ -336,24 +336,7 @@ When `execution_mode: parallel` is set in phase metadata:
    - Include common parameters for all agents
    - Execute multiple agents in single message (for parallelism)
 
-5. Example parallel invocation:
-
-   > **Note**: The following examples use pseudocode syntax to illustrate the Task tool invocation pattern. The actual Claude Code tool call syntax differs.
-
-   ```python
-   # Launch multiple agents in one message for true parallelism
-   Task(
-       subagent_type="feature-specifier",
-       description="Process FEAT-001",
-       prompt="Transform FEAT-001-pr-fetching.md to specification..."
-   )
-   Task(
-       subagent_type="feature-specifier",
-       description="Process FEAT-002",
-       prompt="Transform FEAT-002-check-analysis.md to specification..."
-   )
-   # ... more Task invocations
-   ```
+5. Launch parallel agents (multiple Task tool calls in single message for true parallelism)
 
 6. Monitor and aggregate results:
    - Wait for all parallel agents to complete
@@ -589,42 +572,12 @@ Each phase is executed in an isolated agent context via the Task tool:
 - **Modularity**: Phases become reusable components with clear interfaces
 - **Traceability**: Complete record of what each phase received and produced
 
-### Example Task Tool Invocation
+### Task Tool Invocation Pattern
 
-> **Note**: The following examples use pseudocode syntax to illustrate the Task tool invocation pattern. The actual Claude Code tool call syntax differs.
-
-```python
-# Orchestrator invokes Task tool for each phase:
-Task(
-    subagent_type="phase-executor",
-    description="Execute Phase 00: Research & Discovery",
-    prompt="""
-    ## Phase: Research & Discovery
-
-    ### Your Input Files
-    Please read these files:
-    - /workspace/specs/feature.md (FEATURE_SPEC)
-    - .claude/validation-rules.md (VALIDATION_RULES)
-
-    ### Parameters
-    - SPECS_DIR: outputs/specs/SPEC-001/
-    - LANGUAGE_HINT: Python
-    - FRAMEWORK_HINT: FastAPI
-
-    ### Your Task
-    [Full phase instructions from phase-00-research.md]
-
-    ### Expected Outputs
-    Create these files:
-    - outputs/specs/SPEC-001/research.md
-    - outputs/specs/SPEC-001/adrs/ADR-*.md
-
-    ### Success Criteria
-    - All technical decisions documented
-    - Validation rules compliance verified
-    """
-)
-```
+The orchestrator invokes the Task tool for each phase with:
+- `subagent_type`: "phase-executor" (or specialized agent)
+- `description`: "Execute Phase N: [Name]"
+- `prompt`: Structured context including input files, parameters, instructions, expected outputs, and success criteria
 
 ## Integration with Other Commands
 

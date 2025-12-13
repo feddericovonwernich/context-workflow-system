@@ -1,8 +1,8 @@
 # JSON Schema for workflow.yaml validation
 # This schema defines the structure and validation rules for workflow configuration files
 $schema: http://json-schema.org/draft-07/schema#
-# Note: $id is a local identifier for schema references, not a resolvable URL
-$id: https://claude.ai/workflows/schemas/workflow.yaml
+# Local identifier for schema references (not a resolvable URL)
+$id: urn:claude-workflow:schema:workflow:v1
 title: Workflow Configuration Schema
 description: Schema for validating Claude workflow configuration files
 type: object

@@ -13,11 +13,13 @@ All validation must be performed according to:
 - **Workflow Schema**: `.claude/schemas/workflow-schema.yaml` - workflow.yaml validation
 - **Phase Schema**: `.claude/schemas/phase-metadata-schema.yaml` - Phase metadata validation
 
-**Important**: Read and parse these schema files to validate:
-1. workflow.yaml structure against workflow-schema.yaml
-2. Phase metadata sections against phase-metadata-schema.yaml
-3. Parameter types match schema-defined enums
-4. Required fields are present per schema requirements
+**Validation Approach**: Read the schema files to understand validation rules, then manually check:
+1. workflow.yaml structure matches schema requirements (required fields, types, patterns)
+2. Phase metadata sections conform to schema (inputs/outputs structure, parameter naming)
+3. Parameter types use schema-defined enums (string, boolean, integer, number, enum, file, directory, array)
+4. Required fields are present and properly formatted
+
+*Note: You perform semantic validation by reading and interpreting schemas, not programmatic JSON Schema validation.*
 
 ## Core Responsibilities
 
