@@ -48,7 +48,7 @@ User → Command → Orchestrator → Phase Loop → Agent Execution → Output 
 ├── phase-01-*.md          # REQUIRED: First execution phase
 ├── phase-02-*.md          # REQUIRED: At least one more phase
 ├── phase-NN-*.md          # OPTIONAL: Additional phases
-├── runtime-parameters.yaml  # GENERATED: Runtime parameters
+├── parameters.yaml        # GENERATED: Runtime parameters
 ├── execution.log          # GENERATED: Execution log
 └── examples/              # OPTIONAL: Example configurations
     └── parameters.yaml    # Example parameter sets
@@ -71,21 +71,9 @@ User → Command → Orchestrator → Phase Loop → Agent Execution → Output 
   - ❌ `Phase-01-Test.md` (uppercase)
 
 #### Phase Numbering
-- **Sequential**: No gaps allowed in numbering sequence
-- **Starting Options**:
-  - Start with `01` for workflows without setup phase
-  - Start with `00` for workflows that need setup/discovery
-- **Phase 00**: Reserved for setup, discovery, or parameter initialization
-  - If present, must be followed by `01`, `02`, etc.
-  - Optional - not all workflows need a phase 00
-- **Minimum Phases**: At least two execution phases required (e.g., `01` and `02`, or `00`, `01`, and `02`)
-- **Valid Examples**:
-  - `phase-01-*.md`, `phase-02-*.md` (no setup phase)
-  - `phase-00-*.md`, `phase-01-*.md`, `phase-02-*.md` (with setup phase)
-- **Invalid Examples**:
-  - `phase-01-*.md` only (needs at least two phases)
-  - `phase-00-*.md`, `phase-02-*.md` (gap - missing 01)
-  - `phase-01-*.md`, `phase-03-*.md` (gap - missing 02)
+- **Sequential**: No gaps allowed (01, 02, 03...)
+- **Starting**: Must start with 00 or 01
+- **Special**: Phase 00 reserved for setup/discovery
 
 ## Workflow Configuration Schema
 
@@ -100,7 +88,7 @@ version: string                 # Semantic version (X.Y.Z)
 # OPTIONAL SECTIONS
 parameters:                     # Parameter definitions
   <parameter_name>:            # Or array format (see below)
-    type: string               # string|boolean|integer|number|enum|file|directory
+    type: string               # string|boolean|integer|enum|file|directory
     required: boolean          # Is parameter required?
     description: string        # Human-readable description
     default: any              # Default value (type must match)
@@ -117,7 +105,7 @@ phases:                        # Phase execution configuration
 metadata:                      # Workflow metadata
   generated_from: array        # Source files used for generation
   generated_date: string       # ISO date of generation
-  workflow_type: string        # deployment|testing|migration|build|data-processing|requirements-processing|technical-planning|setup|automation
+  workflow_type: string        # deployment|testing|migration|build|data-processing
   complexity: string           # simple|medium|complex
   supported_agents: array      # List of specialized agents used
   architecture_notes: array    # Important architectural constraints
@@ -183,38 +171,9 @@ phase_metadata:
 ```
 
 ### Parameter Interpolation
-
-Parameters can be interpolated in paths and configuration values using two equivalent syntaxes:
-
-**Syntax Options**:
-- `$PARAMETER_NAME` - Simple form, works in most cases
-- `${PARAMETER_NAME}` - Explicit form, required when parameter is adjacent to other characters
-
-**When to Use Each**:
-```yaml
-# Simple form (preferred when unambiguous)
-path: "$OUTPUT_DIR/report.md"
-
-# Explicit form (required when adjacent to other text)
-path: "${OUTPUT_DIR}_backup/report.md"
-filename: "${PREFIX}report.md"
-```
-
-**Resolution Sources** (in priority order):
-1. Command-line arguments
-2. Environment variables (WORKFLOW_PARAM_NAME format)
-3. Previous phase outputs (from runtime-parameters.yaml)
-4. Default values in workflow.yaml
-5. Default values in phase metadata
-
-**Example**:
-```yaml
-path: "$OUTPUT_DIR/$SPECS_DIR/report.md"
-# With OUTPUT_DIR=./outputs and SPECS_DIR=specs
-# Resolves to: ./outputs/specs/report.md
-```
-
-**Note**: Both syntaxes are functionally equivalent. Use `${}` form when the parameter name would otherwise be ambiguous in context.
+- Use `$PARAMETER_NAME` or `${PARAMETER_NAME}` in paths
+- Parameters resolved from workflow.yaml, CLI, and previous phases
+- Example: `path: "$OUTPUT_DIR/$SPECS_DIR/report.md"`
 
 ## Parameter Specifications
 
@@ -258,20 +217,8 @@ When a phase completes, the executing agent MUST output a structured completion 
 - `errors`: Array of error strings (empty if success)
 
 **Optional Fields**:
-- `notes`: Array of observation strings - useful observations, warnings, or suggestions for subsequent phases
-- `duration_seconds`: Approximate execution time in seconds - used for logging and performance analysis
-
-**Field Details**:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | string | Yes | `SUCCESS` or `FAILURE` |
-| `outputs_created` | array | Yes | List of `{path, exists}` objects |
-| `parameters_discovered` | object | Yes | Key-value pairs (empty `{}` if none) |
-| `success_criteria` | array | Yes | List of `{criterion, met}` objects |
-| `errors` | array | Yes | Error messages (empty `[]` if success) |
-| `notes` | array | No | Observations or warnings |
-| `duration_seconds` | integer | No | Execution time for logging |
+- `notes`: Array of observation strings
+- `duration_seconds`: Execution time estimate
 
 The orchestrator uses this report to:
 1. Validate phase completion
@@ -448,75 +395,10 @@ Required sections in order:
 3. `**Purpose**:` statement
 4. `## Prerequisites` section
 5. `## Tasks for Todo List` section
-6. `## Parameters Used` section
-7. `## Process` section with steps
-8. `## Outputs` section
-9. `## Success Criteria` section
-10. `## Error Handling` section
-
-Optional sections (recommended for complex phases):
-- `## Rollback Plan` - Recovery procedures if phase or subsequent phases fail
-- `## Notes` - Additional context, warnings, or implementation notes
-
-### Conditional Execution (Prerequisites)
-
-Phase files can include conditional prerequisites that control execution flow:
-
-```yaml
-phase_metadata:
-  prerequisites:
-    - condition: "$ENVIRONMENT == 'production'"
-      action: require_approval
-    - condition: "$SKIP_TESTS == true"
-      action: skip_phase
-```
-
-#### Condition Syntax
-
-Conditions use simple expression syntax with parameter interpolation:
-
-**Comparison Operators**:
-- `==` - Equality (string or numeric)
-- `!=` - Inequality
-- `>`, `<`, `>=`, `<=` - Numeric comparison
-
-**Logical Operators**:
-- `&&` - Logical AND
-- `||` - Logical OR
-- `!` - Logical NOT (prefix)
-
-**Parameter References**:
-- `$PARAM_NAME` - Simple reference
-- `${PARAM_NAME}` - Explicit boundary reference
-
-**Literal Values**:
-- Strings: `'value'` or `"value"`
-- Numbers: `42`, `3.14`
-- Booleans: `true`, `false`
-
-**Examples**:
-```yaml
-# Single condition
-condition: "$ENVIRONMENT == 'production'"
-
-# Compound condition
-condition: "$ENVIRONMENT == 'production' && $BACKUP_ENABLED == true"
-
-# Numeric comparison
-condition: "$RETRY_COUNT >= 3"
-
-# Negation
-condition: "!$SKIP_VALIDATION"
-```
-
-#### Available Actions
-
-| Action | Description |
-|--------|-------------|
-| `require_approval` | Pause and ask user for confirmation before proceeding |
-| `skip_phase` | Skip this phase entirely, continue with next phase |
-| `fail_phase` | Immediately fail the phase with condition as reason |
-| `warning` | Log a warning but continue execution |
+6. `## Process` section with steps
+7. `## Outputs` section
+8. `## Success Criteria` section
+9. `## Error Handling` section
 
 ### Cross-File Validation
 

@@ -265,8 +265,7 @@ A well-validated workflow has:
 
 ## See Also
 
-- `create-workflow`: Generate workflows from input files
-- `run-workflow`: Execute multi-phase workflows
-- `.claude/docs/INTRODUCTION.md`: System overview
-- `.claude/docs/SPECIFICATION.md`: Formal specification
-- `.claude/agents/workflow/workflow-validator.md`: Validator agent details
+- `create-workflow`: Generate workflows
+- `workflow`: Execute workflows
+- `.claude/workflows/INTRODUCTION.md`: System overview
+- `.claude/agents/workflow/workflow-validator.md`: Validator details

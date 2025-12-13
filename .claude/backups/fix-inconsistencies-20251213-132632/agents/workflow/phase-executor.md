@@ -67,10 +67,8 @@ Please read these files:
 - [path/to/file2] (PARAMETER_NAME)
 
 ### Parameters
-Parameters are provided with resolved values. Types are for documentation:
-- PARAM1: value1 (string)
-- PARAM2: 42 (integer)
-- PARAM3: true (boolean)
+- PARAM1: value1
+- PARAM2: value2
 
 ### Your Task
 [Phase instructions from the phase file]
@@ -85,74 +83,12 @@ Create these files:
 - Criterion 2
 ```
 
-## Parallel Execution Context
-
-When executing in parallel mode, you may receive context indicating you are one of multiple agents processing similar items:
-
-```
-## Phase: [Phase Name] - PARALLEL EXECUTION
-
-### Parallel Context
-- Work Item: [specific item assigned to you]
-- Total Items: [N items being processed in parallel]
-- Your Assignment: Process item [X] of [N]
-
-### Your Input Files
-- [path/to/specific/work-item.md] (WORK_ITEM_FILE)
-
-### Common Parameters
-- OUTPUT_DIR: /path/to/output
-- OTHER_PARAM: value
-```
-
-**Important for Parallel Execution**:
-1. Focus ONLY on your assigned work item
-2. Do not attempt to process other items
-3. Write outputs to the pattern specified (your outputs must not conflict with other agents)
-4. Your completion report will be aggregated with others by the orchestrator
-5. You still cannot invoke other agents - work directly on your item
-
 ## Output Requirements
 
 1. **File Creation**: Create all files listed in "Expected Outputs"
 2. **Parameter Discovery**: If you discover new parameters during execution, document them
 3. **Status Reporting**: Clearly indicate success or failure with specific details
 4. **Error Details**: If phase cannot complete, explain why and what's missing
-
-## Runtime Parameters File
-
-The orchestrator maintains a `runtime-parameters.yaml` file that tracks parameters through workflow execution. When you discover new parameters, they will be merged into this file.
-
-**File Location**: `<workflow-directory>/runtime-parameters.yaml`
-
-**Structure**:
-```yaml
-generated_at: "2025-01-13T10:30:00Z"
-workflow_run_id: "wf-20250113-103000-abc123"
-
-initial:                    # Parameters from workflow.yaml and CLI (unchanged)
-  OUTPUT_DIR: "./outputs"
-  ENVIRONMENT: "production"
-
-discovered:                 # Parameters discovered during execution (cumulative)
-  SPECS_COUNT: 12
-  DATABASE_TYPE: "postgresql"
-
-current:                    # Merged state (initial + discovered)
-  OUTPUT_DIR: "./outputs"
-  ENVIRONMENT: "production"
-  SPECS_COUNT: 12
-  DATABASE_TYPE: "postgresql"
-```
-
-**Your Role**: Report discovered parameters in your completion report. The orchestrator handles file updates.
-
-```yaml
-# In your completion report:
-parameters_discovered:
-  NEW_PARAM: "value discovered during execution"
-  COUNT: 42
-```
 
 ## What You CAN Do
 

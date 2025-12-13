@@ -1,0 +1,35 @@
+# Example Parameters for fix-system-inconsistencies workflow
+# Copy and modify as needed for your execution
+
+# =============================================================================
+# Standard Execution (with backups)
+# =============================================================================
+PROJECT_ROOT: "/home/fedderico/Repos/agents/context-workflow-system"
+BACKUP_ENABLED: true
+STRICT_MODE: true
+DRY_RUN: false
+
+# =============================================================================
+# Dry Run (preview changes without applying)
+# =============================================================================
+# PROJECT_ROOT: "/home/fedderico/Repos/agents/context-workflow-system"
+# BACKUP_ENABLED: false
+# STRICT_MODE: false
+# DRY_RUN: true
+
+# =============================================================================
+# Quick Fix (no backups, no strict validation)
+# Use only if you have version control or external backups
+# =============================================================================
+# PROJECT_ROOT: "/home/fedderico/Repos/agents/context-workflow-system"
+# BACKUP_ENABLED: false
+# STRICT_MODE: false
+# DRY_RUN: false
+
+# =============================================================================
+# CI/CD Pipeline (strict mode, automated execution)
+# =============================================================================
+# PROJECT_ROOT: "${GITHUB_WORKSPACE}"
+# BACKUP_ENABLED: true
+# STRICT_MODE: true
+# DRY_RUN: false

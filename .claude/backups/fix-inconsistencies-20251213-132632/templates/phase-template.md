@@ -70,9 +70,7 @@ ${SUCCESS_CRITERIA}
 ${ERROR_HANDLING}
 
 ## Rollback Plan
-<!-- Optional: Include for phases with destructive or hard-to-reverse operations -->
 ${ROLLBACK_PLAN}
 
 ## Notes
-<!-- Optional: Additional context, warnings, or implementation guidance -->
 ${ADDITIONAL_NOTES}

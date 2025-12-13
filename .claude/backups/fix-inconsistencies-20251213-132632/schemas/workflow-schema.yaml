@@ -1,7 +1,6 @@
 # JSON Schema for workflow.yaml validation
 # This schema defines the structure and validation rules for workflow configuration files
 $schema: http://json-schema.org/draft-07/schema#
-# Note: $id is a local identifier for schema references, not a resolvable URL
 $id: https://claude.ai/workflows/schemas/workflow.yaml
 title: Workflow Configuration Schema
 description: Schema for validating Claude workflow configuration files
@@ -82,10 +81,12 @@ properties:
       
       default_agent:
         type: string
-        description: Default agent for executing phases. Only phase-executor is valid for phase execution.
+        description: Default agent for all phases
         default: phase-executor
         enum:
           - phase-executor
+          - workflow-creator
+          - workflow-validator
     
     additionalProperties: false
   
@@ -202,19 +203,14 @@ definitions:
         type: string
         description: Regex pattern for string validation
     
-    allOf:
-      - if:
-          properties:
-            type:
-              const: enum
-          required:
-            - type
-        then:
-          required:
-            - enum
-
+    dependencies:
+      enum:
+        properties:
+          type:
+            const: enum
+    
     additionalProperties: false
-
+  
   parameterArray:
     type: object
     required:
@@ -263,16 +259,11 @@ definitions:
       
       example:
         description: Example value for documentation
-
-    allOf:
-      - if:
-          properties:
-            type:
-              const: enum
-          required:
-            - type
-        then:
-          required:
-            - enum
-
+    
+    dependencies:
+      enum:
+        properties:
+          type:
+            const: enum
+    
     additionalProperties: false

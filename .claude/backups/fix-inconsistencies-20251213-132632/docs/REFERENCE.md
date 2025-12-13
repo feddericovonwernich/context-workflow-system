@@ -30,8 +30,8 @@ description: "Purpose"     # Required: description
 version: 1.0.0            # Required: semver
 
 parameters:               # Optional: parameters
-  PARAM_NAME:
-    type: string         # string|boolean|integer|number|enum|file|directory
+  param_name:
+    type: string         # string|boolean|integer|enum|file|directory
     required: true       # Is required?
     default: value       # Default value
     description: "..."   # Description
@@ -52,9 +52,8 @@ phase_metadata:
   # For parallel execution:
   parallel_config:
     agent_type: feature-specifier
-    discovery_pattern: "$OUTPUT_DIR/features/*.md"
-    work_item_parameter: FEATURE_FILE
-    output_pattern: "$OUTPUT_DIR/specs/{name}-spec.md"
+    discovery_pattern: "$DIR/*.md"
+    work_item_parameter: WORK_FILE
     max_parallel: 5
   
   inputs:

@@ -24,7 +24,7 @@ create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
 **Arguments:**
 - `input-files`: One or more files to analyze (paths to specs, requirements, code, etc.)
 - `--name`: Name for the generated workflow
-- `--type`: Optional workflow type hint (deployment|testing|migration|build|data-processing|requirements-processing|technical-planning|setup|automation)
+- `--type`: Optional workflow type hint (deployment/testing/migration/build/data-processing)
 
 ## Examples
 

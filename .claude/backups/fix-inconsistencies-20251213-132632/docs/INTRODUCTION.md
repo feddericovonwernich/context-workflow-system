@@ -57,37 +57,6 @@ workflow-directory/
     └── parameters.yaml    # Example parameter sets
 ```
 
-#### Examples Directory
-
-The `examples/` directory contains sample parameter files for running the workflow:
-
-**examples/parameters.yaml**:
-```yaml
-# Example parameters for development environment
-ENVIRONMENT: "development"
-OUTPUT_DIR: "./outputs/dev"
-BACKUP_ENABLED: false
-MAX_RETRIES: 3
-
-# Example parameters for production environment (commented)
-# ENVIRONMENT: "production"
-# OUTPUT_DIR: "./outputs/prod"
-# BACKUP_ENABLED: true
-# MAX_RETRIES: 5
-```
-
-**Purpose**:
-- Provides ready-to-use parameter configurations
-- Documents expected parameter values and formats
-- Enables quick testing without manual parameter entry
-- Serves as documentation for workflow users
-
-**Usage**:
-```bash
-# Use example parameters directly
-run-workflow .claude/workflows/my-workflow --params examples/parameters.yaml
-```
-
 ### Phases
 
 A **phase** is an atomic unit of work with:
@@ -657,35 +626,23 @@ run-workflow <workflow-dir> [parameters...]
 .claude/
 ├── commands/
 │   ├── create-workflow.md
-│   ├── run-workflow.md
-│   └── validate-workflow.md
-├── agents/workflow/
-│   ├── workflow-creator.md
-│   ├── phase-executor.md
-│   └── workflow-validator.md
-├── docs/
-│   ├── INTRODUCTION.md
-│   ├── SPECIFICATION.md
-│   └── REFERENCE.md
-├── schemas/
-│   ├── workflow-schema.yaml
-│   └── phase-metadata-schema.yaml
-├── templates/
-│   └── phase-template.md
-└── workflows/
-    └── <workflow-name>/
-        ├── workflow.yaml
-        ├── README.md
-        ├── phase-*.md
-        ├── runtime-parameters.yaml
-        └── examples/
+│   └── run-workflow.md
+├── workflows/
+│   └── <workflow-name>/
+│       ├── workflow.yaml
+│       ├── README.md
+│       ├── phase-*.md
+│       └── examples/
+└── templates/
+    └── workflows/
+        ├── phase-template.md
+        └── *-workflow-template.yaml
 ```
 
 ### Agent Types
 
-- **workflow-creator**: Analyzes input files and generates complete multi-phase workflows
-- **phase-executor**: Executes individual workflow phases in isolated context
-- **workflow-validator**: Validates workflow structure, metadata, and documentation coherence
+- **workflow-creator**: Generates workflows from requirements
+- **phase-executor**: Executes individual phases in isolation
 
 ### Workflow Types
 
@@ -694,10 +651,6 @@ run-workflow <workflow-dir> [parameters...]
 - `migration` - Data/schema migration workflows
 - `build` - Build and packaging workflows
 - `data-processing` - ETL and analysis workflows
-- `requirements-processing` - Requirements analysis and transformation workflows
-- `technical-planning` - Technical design and planning workflows
-- `setup` - Environment setup and initialization workflows
-- `automation` - General automation and orchestration workflows
 
 ### Parameter Types
 

@@ -53,7 +53,7 @@ workflow-directory/
 ```
 workflow-directory/
 ├── phase-00-setup.md      # Optional setup/discovery phase
-├── runtime-parameters.yaml  # Generated runtime parameters
+├── parameters.yaml        # Generated runtime parameters
 └── execution.log         # Generated execution log
 ```
 
@@ -614,13 +614,10 @@ Task(
 
 ## Integration with Other Commands
 
-Phases executed via agents have access to Claude's built-in tools:
-- File operations (read, write, edit)
-- Bash commands and script execution
-- Search and analysis tools
-- Web requests via appropriate tools
-
-**Important**: Agents CANNOT invoke other agents. The Task tool is not available within phase execution. All work must be completed directly by the phase-executor agent.
+Phases executed via agents can still use other Claude commands and tools:
+- Agents can call specialized sub-agents
+- Use search and analysis tools within phase execution
+- Maintain composability while ensuring isolation
 
 ## Backward Compatibility Note
 

@@ -1,0 +1,64 @@
+---
+backup_created: "2025-12-13T13:26:32"
+backup_directory: "/home/fedderico/Repos/agents/context-workflow-system/.claude/backups/fix-inconsistencies-20251213-132632"
+project_root: "/home/fedderico/Repos/agents/context-workflow-system"
+
+files:
+  - path: ".claude/schemas/workflow-schema.yaml"
+    sha256: "f2d3e5f5fd8c482c2fdfa6fdb6c0fe2aa8a28f9263140c389b7c6fd1cde3701d"
+    backup_path: "schemas/workflow-schema.yaml"
+
+  - path: ".claude/schemas/phase-metadata-schema.yaml"
+    sha256: "fb942a85270cabb6a748478047fc7eebbf5377535dd0468a49e3e4d33e6cd37a"
+    backup_path: "schemas/phase-metadata-schema.yaml"
+
+  - path: ".claude/docs/INTRODUCTION.md"
+    sha256: "318a79d1626289b6b2352caafa860e301b25c8f8f31e4392f766f9d42398b719"
+    backup_path: "docs/INTRODUCTION.md"
+
+  - path: ".claude/docs/SPECIFICATION.md"
+    sha256: "f492d694d9fc43d0d6faed16a085e9ab2b4622bea699c56c7d2b21774289980d"
+    backup_path: "docs/SPECIFICATION.md"
+
+  - path: ".claude/docs/REFERENCE.md"
+    sha256: "87b646d24d4a0300a5a3ed0828a73c2756efcf9b3f81fff8fff5603f3ff8c41a"
+    backup_path: "docs/REFERENCE.md"
+
+  - path: ".claude/commands/create-workflow.md"
+    sha256: "b3e65aabe09ca070435f13daa10ae8438f75a1ca18095abe9835837b1cb0c86c"
+    backup_path: "commands/create-workflow.md"
+
+  - path: ".claude/commands/run-workflow.md"
+    sha256: "256b1968679c1e0644e568ca6e90c3bdb49194a9fb92a5887805562e69187b29"
+    backup_path: "commands/run-workflow.md"
+
+  - path: ".claude/commands/validate-workflow.md"
+    sha256: "475c47a2e470168933d75946202ccb07c0c73821476915db60b166c2a9a3d598"
+    backup_path: "commands/validate-workflow.md"
+
+  - path: ".claude/agents/workflow/workflow-creator.md"
+    sha256: "12eb45099157029c52bfa17461800e86e83ef68f87d1276eb628807ecf207a7d"
+    backup_path: "agents/workflow/workflow-creator.md"
+
+  - path: ".claude/agents/workflow/phase-executor.md"
+    sha256: "5ab777d34d2b00ec1e286acb3b0dd725129e5436172f0b7b74271be3d89858fe"
+    backup_path: "agents/workflow/phase-executor.md"
+
+  - path: ".claude/agents/workflow/workflow-validator.md"
+    sha256: "c88f71c23b5c351ab430f035ed0d1f2795cc10ce4b4fd53b947e684c0e08fa40"
+    backup_path: "agents/workflow/workflow-validator.md"
+
+  - path: ".claude/templates/phase-template.md"
+    sha256: "792ce483b37ed4ded8e9060baaa45d89b43c57ce4b997245f0a5d1548197ba08"
+    backup_path: "templates/phase-template.md"
+
+verification:
+  total_files: 12
+  all_checksums_verified: true
+  backup_integrity: "confirmed"
+
+notes:
+  - "All 12 system files successfully backed up"
+  - "Checksums verified - backup integrity confirmed"
+  - "Backup can be restored using the checksums for verification"
+---

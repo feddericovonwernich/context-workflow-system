@@ -1,7 +1,6 @@
 # JSON Schema for phase metadata validation
 # This schema defines the structure and validation rules for phase file metadata sections
 $schema: http://json-schema.org/draft-07/schema#
-# Note: $id is a local identifier for schema references, not a resolvable URL
 $id: https://claude.ai/workflows/schemas/phase-metadata.yaml
 title: Phase Metadata Schema
 description: Schema for validating phase file metadata sections in Claude workflows
@@ -224,18 +223,13 @@ properties:
                     - SPECS_COUNT
                     - VALIDATION_PASSED
                     - GENERATED_FILES
-
-                required:
-                  type: boolean
-                  description: Whether this output parameter is guaranteed to be set
-                  default: true
-
+                
                 description:
                   type: string
                   description: What this parameter represents
                   minLength: 5
                   maxLength: 200
-
+                
                 type:
                   type: string
                   description: Parameter type
@@ -245,9 +239,6 @@ properties:
                     - integer
                     - number
                     - array
-                    - enum
-                    - file
-                    - directory
               
               additionalProperties: false
             

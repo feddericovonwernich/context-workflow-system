@@ -22,7 +22,7 @@ All validation must be performed according to:
 ## Validation Process
 
 ### Phase 1: System Understanding
-1. Read `.claude/docs/INTRODUCTION.md` to understand workflow system
+1. Read `.claude/workflows/INTRODUCTION.md` to understand workflow system
 2. Load validation rules and requirements
 3. Prepare comprehensive validation checklist
 
