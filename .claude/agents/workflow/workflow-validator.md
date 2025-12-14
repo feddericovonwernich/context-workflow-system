@@ -99,6 +99,56 @@ Valid keys:
 - parallel_execution_supported: boolean
 ```
 
+#### Loop Configuration Validation
+
+If `loops` section exists in workflow.yaml:
+
+**Structural Checks**:
+- [ ] Loop `phases` array is non-empty (ERROR if empty)
+- [ ] All phase numbers in `phases` array reference existing phase files (ERROR if not found)
+- [ ] Phases are sequential with no gaps (e.g., [2,3,4] is valid, [2,4,6] is not) (ERROR if gaps)
+- [ ] No overlapping loops - same phase cannot appear in multiple loops (ERROR if overlap)
+- [ ] `max_iterations` is between 1-100 (ERROR if outside range)
+- [ ] Loop `name` follows kebab-case pattern and is 3-50 characters (ERROR if invalid)
+
+**MVP-Specific Checks**:
+- [ ] Either `iterations` field specified OR `allow_phase_control: true` (WARNING if neither specified)
+- [ ] If `allow_phase_control: true`, loop description should mention phase control (INFO if not documented)
+- [ ] If both `iterations` and `allow_phase_control` specified, document override behavior (INFO)
+
+**Phase Reference Checks**:
+- [ ] Loop start phase (first in phases array) exists as a phase file (ERROR if missing)
+- [ ] Loop end phase (last in phases array) exists as a phase file (ERROR if missing)
+- [ ] Phases in loop are contiguous in workflow (WARNING if non-contiguous)
+- [ ] Loop phases are in ascending order (ERROR if not sorted)
+
+**Safety Checks**:
+- [ ] `max_iterations` is reasonable (WARNING if > 50, INFO if > 20)
+- [ ] Loop doesn't span entire workflow (INFO - should leave pre/post phases)
+
+**Error Messages**:
+- ERROR: "Loop '{name}' references non-existent phase {phase_num}"
+- ERROR: "Loop '{name}' has overlapping phases with loop '{other_name}'"
+- ERROR: "Loop '{name}' phases must be sequential with no gaps"
+- ERROR: "Loop '{name}' max_iterations must be between 1 and 100"
+- WARNING: "Loop '{name}' has no iteration control mechanism (no iterations or allow_phase_control)"
+- WARNING: "Loop '{name}' max_iterations very high ({max_iterations}), consider reducing"
+
+**Exit Condition Validation**:
+
+If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exit Condition Protocol** (lines 577-631):
+
+**Key Checks** (see spec for complete validation rules):
+- [ ] Mutual exclusivity with `iterations` field (ERROR if both present)
+- [ ] Expression syntax validation (parameter references, operators, literals)
+- [ ] Shell security (no metacharacters: `;`, `|`, backticks, command substitution)
+- [ ] Parameter validation (all `$PARAM` references declared in workflow.yaml, UPPER_SNAKE_CASE)
+- [ ] Operator validation (only supported: `<`, `>`, `<=`, `>=`, `==`, `!=`, `&&`, `||`, `!`)
+- [ ] Type compatibility checks (WARNING for mismatches)
+- [ ] Description field present (WARNING if missing)
+
+**Reference**: See `.claude/docs/SPECIFICATION.md` lines 577-631 for complete validation rules, error messages, and examples.
+
 ### Phase 4: Phase File Validation
 
 #### Metadata Section Check

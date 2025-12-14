@@ -189,7 +189,7 @@ install_file() {
     if $DRY_RUN; then
         if [[ ! -d "$target_dir" ]]; then
             info "Would create directory: $target_dir"
-        fi
+      fi
     else
         mkdir -p "$target_dir"
     fi

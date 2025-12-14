@@ -81,6 +81,105 @@ properties:
         default: false
 
     additionalProperties: false
+
+  loops:
+    type: array
+    description: Loop configurations for iterative phase execution
+    items:
+      type: object
+      required:
+        - name
+        - phases
+        - max_iterations
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z][a-z0-9-]*$"
+          description: Loop identifier in kebab-case
+          minLength: 3
+          maxLength: 50
+          examples:
+            - refinement-loop
+            - quality-gate
+            - convergence-test
+
+        description:
+          type: string
+          description: Human-readable purpose of this loop
+          minLength: 10
+          maxLength: 200
+
+        phases:
+          type: array
+          description: Phase numbers in loop body (e.g., [2, 3, 4])
+          items:
+            type: integer
+            minimum: 0
+            maximum: 99
+          minItems: 1
+          uniqueItems: true
+          examples:
+            - [2, 3]
+            - [1, 2, 3, 4]
+
+        max_iterations:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Safety limit - maximum loop iterations allowed
+          default: 10
+
+        iterations:
+          type: integer
+          minimum: 1
+          description: Fixed iteration count (run exactly N times)
+
+        allow_phase_control:
+          type: boolean
+          default: true
+          description: Allow phases to override loop continuation via LOOP_CONTINUE parameter
+
+        exit_condition:
+          type: object
+          description: Optional declarative exit condition evaluated by orchestrator after each iteration
+          required:
+            - expression
+          properties:
+            expression:
+              type: string
+              minLength: 3
+              maxLength: 500
+              description: "Boolean expression using parameter references ($PARAM) and operators (==, !=, <, >, <=, >=, &&, ||, !)"
+              examples:
+                - "$CONVERGENCE_DELTA < $CONVERGENCE_THRESHOLD"
+                - "$ERROR_COUNT == 0 && $QUALITY_SCORE >= 95"
+                - "!$HAS_ERRORS"
+
+            description:
+              type: string
+              minLength: 5
+              maxLength: 200
+              description: Human-readable explanation of the exit criteria
+              examples:
+                - "Exit when convergence achieved"
+                - "Exit when all tests pass and quality threshold met"
+
+          additionalProperties: false
+
+      # Validation: exit_condition and iterations are mutually exclusive
+      oneOf:
+        - required: [exit_condition]
+          not:
+            required: [iterations]
+        - required: [iterations]
+          not:
+            required: [exit_condition]
+        - not:
+            anyOf:
+              - required: [exit_condition]
+              - required: [iterations]
+
+      additionalProperties: false
   
   metadata:
     type: object

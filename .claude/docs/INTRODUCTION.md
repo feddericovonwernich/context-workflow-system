@@ -621,6 +621,102 @@ Benefits:
 - Maintains isolation between parallel executions
 - Aggregates results for next phases
 
+### Loop Execution
+
+Workflows support iterative phase execution through a **hybrid loop system** that combines declarative configuration with dynamic phase control.
+
+**Basic Configuration**:
+```yaml
+# In workflow.yaml
+loops:
+  - name: refinement-loop
+    description: "Iterative refinement until quality threshold met"
+    phases: [2, 3, 4]           # Phases that form the loop body
+    max_iterations: 20           # Safety limit (required)
+    iterations: 5                # Optional: fixed iteration count
+    allow_phase_control: true    # Allow phases to control loop (default)
+```
+
+**Loop Control Priority**:
+1. **max_iterations** (HIGHEST): Safety limit, cannot be exceeded
+2. **Phase override** (LOOP_CONTINUE parameter): Dynamic control
+3. **Fixed iterations**: Default behavior
+4. **Default exit**: No control mechanism active
+
+**Phase Control Example**:
+```yaml
+# Phases can discover loop control parameters
+phase_completion:
+  parameters_discovered:
+    CONVERGENCE_DELTA: 0.008
+    LOOP_CONTINUE: false          # Exit loop
+    LOOP_REASON: "Converged (delta < threshold)"
+```
+
+**Use Cases**:
+
+1. **Convergence Testing**: Loop until metric meets threshold
+   ```bash
+   if [ $(echo "$DELTA < $THRESHOLD" | bc) -eq 1 ]; then
+     echo "LOOP_CONTINUE: false"
+   else
+     echo "LOOP_CONTINUE: true"
+   fi
+   ```
+
+2. **Quality Gates**: Loop until all tests pass and coverage met
+   ```bash
+   if [ $TESTS_PASSED -eq $TOTAL_TESTS ] && [ $COVERAGE -ge 90 ]; then
+     echo "LOOP_CONTINUE: false"  # Quality achieved
+   else
+     echo "LOOP_CONTINUE: true"   # Keep refining
+   fi
+   ```
+
+3. **Fixed Iterations**: Process data in batches
+   ```yaml
+   iterations: 10  # Run exactly 10 times
+   ```
+
+**Automatic Parameters**:
+The orchestrator injects loop context parameters:
+- `LOOP_INDEX`: Current iteration number (1-based)
+- `LOOP_NAME`: Loop identifier
+- `LOOP_ITERATION`: Alias for LOOP_INDEX
+
+**Benefits**:
+- **Static validation**: Loop structure validated before execution
+- **Dynamic control**: Phases decide when convergence is met
+- **Safety guaranteed**: max_iterations prevents infinite loops
+- **Full traceability**: `loop_state.yaml` tracks iteration history
+- **Hybrid flexibility**: Declarative structure + phase override
+
+**State Tracking**:
+```yaml
+# Generated: loop_state.yaml
+loops:
+  refinement-loop:
+    current_iteration: 3
+    total_iterations: 3
+    max_iterations: 20
+    iteration_history:
+      - iteration: 1
+        timestamp: "2025-01-15T10:30:00Z"
+      - iteration: 2
+        timestamp: "2025-01-15T10:35:00Z"
+```
+
+**Current Limitations**:
+- No nested loops (loops within loops)
+- No result aggregation across iterations
+
+**Additional Loop Features**:
+- ✅ Declarative exit conditions (expression-based in workflow.yaml)
+- ✅ Phase override control (LOOP_CONTINUE parameter)
+- ✅ Hybrid approach (combine both mechanisms)
+
+Further enhancements are planned for future releases.
+
 ### Concurrent Phase Groups
 
 > **NOT IMPLEMENTED**: This feature is planned for a future release and is not currently available. The syntax below is for illustration only.
