@@ -57,8 +57,11 @@ workflow-directory/
 ```
 workflow-directory/
 ├── phase-00-setup.md      # Optional setup/discovery phase
-├── runtime-parameters.yaml  # Generated runtime parameters
-└── execution.log         # Generated execution log
+└── runs/                  # Generated execution history
+    └── wf-YYYYMMDD-*/     # Timestamped run directory
+        ├── runtime-parameters.yaml  # Generated runtime parameters
+        ├── execution.log            # Generated execution log
+        └── loop_state.yaml          # Generated loop state (if loops exist)
 ```
 
 ### File Naming Convention
@@ -200,6 +203,27 @@ Detailed instructions for this step...
 
 ## Execution Flow
 
+### 0. Run Directory Setup
+
+**Create timestamped execution directory:**
+```
+1. Generate workflow_run_id in format: wf-YYYYMMDD-HHMMSS-<random-6-chars>
+   - Use UTC timestamp
+   - Random suffix for collision prevention
+   - Example: "wf-20250114-143022-a3f9c2"
+
+2. Create runs directory if it doesn't exist:
+   mkdir -p <workflow-dir>/runs
+
+3. Create timestamped run directory:
+   mkdir -p <workflow-dir>/runs/<workflow_run_id>
+
+4. Set RUN_DIR variable for use throughout execution:
+   RUN_DIR="<workflow-dir>/runs/<workflow_run_id>"
+```
+
+**Note**: This ensures all runtime files are isolated per execution run.
+
 ### 1. Discovery Phase
 ```
 1. Validate WORKFLOW_DIR exists and is readable
@@ -221,7 +245,7 @@ Detailed instructions for this step...
    - Environment variables take precedence over defaults but not CLI args
 4. If phase-00-setup.md exists:
    - Execute setup phase for parameter discovery
-   - Store discovered values in runtime-parameters.yaml
+   - Store discovered values in <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml
 5. Validate all required parameters are available
 6. Load default values for optional parameters
 ```
@@ -253,13 +277,13 @@ If workflow.yaml contains `loops` section:
    - No overlapping loops (same phase in multiple loops)
    - max_iterations between 1-100
 
-4. Create loop_state.yaml in workflow directory:
+4. Create loop_state.yaml in timestamped run directory:
 
    **Structure**: See SPECIFICATION.md (Runtime File Specifications → loop_state.yaml) for complete schema.
 
    **Initial State** (example):
    ```yaml
-   # File: <workflow-dir>/loop_state.yaml
+   # File: <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml
    loops:
      refinement-loop:
        name: refinement-loop
@@ -293,11 +317,11 @@ For each loop with `exit_condition` field, validate expression during initializa
 3. **Shell Security**: No dangerous metacharacters (`;`, `|`, backticks, command substitution)
 4. **Operator Validation**: Only supported operators (`<`, `>`, `<=`, `>=`, `==`, `!=`, `&&`, `||`, `!`)
 5. **Syntax Validation**: Parameters use UPPER_SNAKE_CASE, literals are properly formatted
-6. **Store Validated Expression**: Update loop_state.yaml with validated expression and extracted parameter list
+6. **Store Validated Expression**: Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with validated expression and extracted parameter list
 
 **On Success**:
 - LOG: "[EXIT_CONDITION_VALIDATED] Loop '{name}': {expression}"
-- Store in loop_state.yaml with `validated: true` flag
+- Store in <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with `validated: true` flag
 
 **On Failure**:
 - ERROR with specific message (see SPECIFICATION.md for complete error message formats)
@@ -317,7 +341,7 @@ For each phase:
 4. Resolve parameters from:
    - workflow.yaml definitions
    - Command-line arguments
-   - Previous phase outputs (runtime-parameters.yaml)
+   - Previous phase outputs (<workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml)
    - Discovered files in output directories
 
 5. CHECK EXECUTION MODE:
@@ -359,10 +383,10 @@ For each phase:
 9. Process agent result:
    - Verify expected outputs were created
    - Extract any new parameters for next phases
-   - Update runtime-parameters.yaml if needed
+   - Update <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml if needed
 10. Mark phase as completed in todo list
 11. ANNOUNCE: "Completed Phase X of Y: [Phase Name]"
-12. Log execution details to execution.log
+12. Log execution details to <workflow-dir>/runs/<workflow_run_id>/execution.log
 ```
 
 ### 4b. Loop Evaluation (after phase completion)
@@ -389,7 +413,7 @@ After completing a phase, check if loop continuation is needed:
    If current_iter >= loop.max_iterations:
       → LOG: "[LOOP_MAX_ITERATIONS] Loop '{loop_name}' reached limit ({max_iterations})"
       → ANNOUNCE: "⚠️  Loop '{loop_name}' reached maximum iterations ({max_iterations})"
-      → Update loop_state.yaml with final state
+      → Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with final state
       → EXIT LOOP (continue to next sequential phase after loop)
 
 5. INJECT LOOP PARAMETERS:
@@ -410,7 +434,7 @@ After completing a phase, check if loop continuation is needed:
          If loop_continue == false or loop_continue == "false":
             → LOG: "[LOOP_EXIT_OVERRIDE] Loop '{loop_name}' exit requested by phase: {loop_reason}"
             → ANNOUNCE: "✓ Loop '{loop_name}' exited: {loop_reason}"
-            → Update loop_state.yaml with exit details
+            → Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with exit details
             → EXIT LOOP (continue to next sequential phase)
 
          If loop_continue == true or loop_continue == "true":
@@ -424,7 +448,7 @@ After completing a phase, check if loop continuation is needed:
       **Implementation**: Follow the Exit Condition Protocol defined in SPECIFICATION.md (Exit Condition Protocol section).
 
       **Key Steps**:
-      1. Resolve parameters from runtime-parameters.yaml
+      1. Resolve parameters from <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml
       2. Substitute parameter values into expression
       3. Evaluate expression using safe bash/bc translation (see SPEC for security rules)
       4. Check result (1=true, 0=false)
@@ -434,7 +458,7 @@ After completing a phase, check if loop continuation is needed:
          → LOG: "[LOOP_EXIT_CONDITION] Expression: {original_expression}"
          → LOG: "[LOOP_EXIT_CONDITION] Resolved: {resolved_expression}"
          → ANNOUNCE: "✓ Loop '{loop_name}' exit condition satisfied: {description}"
-         → Update loop_state.yaml with exit condition details
+         → Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with exit condition details
          → EXIT LOOP (go to step 9)
 
       **If expression evaluates to FALSE** (continue looping):
@@ -446,7 +470,7 @@ After completing a phase, check if loop continuation is needed:
          → ERROR: "Exit condition evaluation failed: {error_message}"
          → ABORT workflow
 
-      **Loop State Update**: Add evaluation results to iteration_history in loop_state.yaml
+      **Loop State Update**: Add evaluation results to iteration_history in <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml
 
 7. CHECK FIXED ITERATIONS (default behavior):
    If loop has "iterations" field:
@@ -465,7 +489,7 @@ After completing a phase, check if loop continuation is needed:
       → EXIT LOOP (continue to next sequential phase)
 
 8. CONTINUE LOOP:
-   a. Update loop_state.yaml:
+   a. Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml:
       ```yaml
       loops:
         {loop_name}:
@@ -483,7 +507,7 @@ After completing a phase, check if loop continuation is needed:
               exit_condition_resolved: "{resolved_expression}"  # Only if checked
       ```
 
-   b. Update runtime-parameters.yaml:
+   b. Update <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml:
       - Merge discovered parameters from this iteration
       - Preserve all previous parameters (cumulative)
 
@@ -501,7 +525,7 @@ After completing a phase, check if loop continuation is needed:
    e. JUMP to loop start phase (continue execution from loop start)
 
 9. EXIT LOOP:
-   a. Update loop_state.yaml with final state:
+   a. Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with final state:
       ```yaml
       loops:
         {loop_name}:
@@ -515,7 +539,7 @@ After completing a phase, check if loop continuation is needed:
           iteration_history: [...]
       ```
 
-   b. Log loop completion to execution.log
+   b. Log loop completion to <workflow-dir>/runs/<workflow_run_id>/execution.log
 
    c. Continue to next sequential phase after loop end phase
 ```
@@ -572,7 +596,7 @@ When `execution_mode: parallel` is set in phase metadata:
 7. Complete parallel phase:
    - Mark phase as completed in todo list
    - Generate summary report if specified
-   - Update runtime-parameters.yaml with aggregated values
+   - Update <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml with aggregated values
 ```
 
 ### 5. Completion
@@ -583,7 +607,20 @@ When `execution_mode: parallel` is set in phase metadata:
    - Total phases executed
    - Total time taken
    - Key outputs produced
-4. Save complete execution.log
+4. Save complete <workflow-dir>/runs/<workflow_run_id>/execution.log
+5. Display run directory location:
+
+   ═══════════════════════════════════════════════════════
+   WORKFLOW COMPLETE
+   ═══════════════════════════════════════════════════════
+   Execution metadata saved to:
+   <workflow-dir>/runs/<workflow_run_id>/
+
+   Files:
+   - runtime-parameters.yaml (parameter state)
+   - execution.log (execution events)
+   - loop_state.yaml (if loops were used)
+   ═══════════════════════════════════════════════════════
 ```
 
 ## Progress Indicators
@@ -646,7 +683,7 @@ When a phase fails:
    - Prompt: "Phase failed. Retry? (y/n)"
    - On 'y': Reset phase tasks and retry
    - On 'n': Abort workflow
-4. Log failure details to execution.log
+4. Log failure details to <workflow-dir>/runs/<workflow_run_id>/execution.log
 
 ### Missing Requirements
 - Missing workflow.yaml: Error with instructions to create
@@ -751,7 +788,7 @@ Within a phase, mark tasks that can run in parallel:
 - Verify parameter names match exactly
 
 **"Phase failed to complete"**
-- Check execution.log for details
+- Check <workflow-dir>/runs/<workflow_run_id>/execution.log for details
 - Verify prerequisites were met
 - Review success criteria
 - Consider retry if transient issue

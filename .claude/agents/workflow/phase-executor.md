@@ -118,7 +118,9 @@ When executing in parallel mode, you may receive context indicating you are one 
 
 The orchestrator maintains a `runtime-parameters.yaml` file that tracks parameters through workflow execution. When you discover new parameters, they will be merged into this file.
 
-**File Location**: `<workflow-directory>/runtime-parameters.yaml`
+**File Location**: `<workflow-directory>/runs/<workflow_run_id>/runtime-parameters.yaml`
+
+**Note on Runtime Parameters**: The orchestrator manages runtime-parameters.yaml at the path shown above. Phase executors don't need to know this path - the orchestrator provides resolved parameter values directly in the phase prompt.
 
 **Structure**:
 ```yaml

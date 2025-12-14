@@ -18,9 +18,12 @@ workflow-directory/
 ├── workflow.yaml              # REQUIRED: Configuration
 ├── phase-XX-*.md             # REQUIRED: At least 2 phases
 ├── README.md                  # Recommended: Documentation
-├── runtime-parameters.yaml    # GENERATED: Runtime state
-├── execution.log              # GENERATED: Execution log
-└── examples/                  # Optional: Examples
+├── examples/                  # Optional: Examples
+└── runs/                      # GENERATED: Execution history
+    └── wf-YYYYMMDD-*/        # Per-run metadata
+        ├── runtime-parameters.yaml
+        ├── execution.log
+        └── loop_state.yaml
 ```
 
 > **Minimum Phases**: 2 required. Any sequential combination of 2+ phases with no gaps is valid (e.g., `phase-00` + `phase-01`, or `phase-01` + `phase-02`, or `phase-01` + `phase-02` + `phase-03`).
