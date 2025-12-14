@@ -112,7 +112,8 @@ If `loops` section exists in workflow.yaml:
 - [ ] Loop `name` follows kebab-case pattern and is 3-50 characters (ERROR if invalid)
 
 **MVP-Specific Checks**:
-- [ ] Either `iterations` field specified OR `allow_phase_control: true` (WARNING if neither specified)
+- [ ] Loop has at least one control mechanism (ERROR if `allow_phase_control: false` AND no `iterations` AND no `exit_condition`)
+- [ ] If phase-driven control (no `iterations`/`exit_condition` but `allow_phase_control: true`), suggest documenting control logic (INFO)
 - [ ] If `allow_phase_control: true`, loop description should mention phase control (INFO if not documented)
 - [ ] If both `iterations` and `allow_phase_control` specified, document override behavior (INFO)
 
@@ -131,8 +132,9 @@ If `loops` section exists in workflow.yaml:
 - ERROR: "Loop '{name}' has overlapping phases with loop '{other_name}'"
 - ERROR: "Loop '{name}' phases must be sequential with no gaps"
 - ERROR: "Loop '{name}' max_iterations must be between 1 and 100"
-- WARNING: "Loop '{name}' has no iteration control mechanism (no iterations or allow_phase_control)"
+- ERROR: "Loop '{name}' has no control mechanism (allow_phase_control: false AND no iterations/exit_condition)"
 - WARNING: "Loop '{name}' max_iterations very high ({max_iterations}), consider reducing"
+- INFO: "Loop '{name}' uses phase-driven control (no iterations/exit_condition) - ensure phases implement LOOP_CONTINUE logic"
 
 **Exit Condition Validation**:
 

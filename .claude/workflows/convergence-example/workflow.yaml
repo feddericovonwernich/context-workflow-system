@@ -51,4 +51,4 @@ metadata:
     - "Demonstrates hybrid loop control: declarative exit_condition + phase override"
     - "exit_condition provides standard convergence check (DELTA < THRESHOLD)"
     - "Phase 4 can override for exceptional cases (errors, early exit)"
-    - "Control priority: max_iterations > phase override > exit_condition"
+    - "Control priority: max_iterations > phase override > exit_condition > iterations > default"

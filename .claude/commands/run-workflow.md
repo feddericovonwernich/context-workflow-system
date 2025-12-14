@@ -254,6 +254,10 @@ If workflow.yaml contains `loops` section:
    - max_iterations between 1-100
 
 4. Create loop_state.yaml in workflow directory:
+
+   **Structure**: See SPECIFICATION.md (Runtime File Specifications → loop_state.yaml) for complete schema.
+
+   **Initial State** (example):
    ```yaml
    # File: <workflow-dir>/loop_state.yaml
    loops:
@@ -264,25 +268,7 @@ If workflow.yaml contains `loops` section:
        max_iterations: 20
        phases: [2, 3, 4]
        iteration_history: []
-       # Optional: Include exit_condition if specified in workflow.yaml
-       exit_condition:
-         expression: "$CONVERGENCE_DELTA < $CONVERGENCE_THRESHOLD"
-         description: "Exit when convergence achieved"
-         validated: true
-         parameters_used: ["CONVERGENCE_DELTA", "CONVERGENCE_THRESHOLD"]
-     quality-gate:
-       name: quality-gate
-       current_iteration: 0
-       total_iterations: 0
-       max_iterations: 5
-       phases: [1, 2, 3]
-       iteration_history: []
-       # Optional: Include exit_condition if specified in workflow.yaml
-       exit_condition:
-         expression: "$ERROR_COUNT == 0 && $QUALITY_SCORE >= 95"
-         description: "Exit when all tests pass and quality threshold met"
-         validated: true
-         parameters_used: ["ERROR_COUNT", "QUALITY_SCORE"]
+       # exit_condition included if specified in workflow.yaml
    ```
 
 5. Log loop initialization:
@@ -406,11 +392,14 @@ After completing a phase, check if loop continuation is needed:
       → Update loop_state.yaml with final state
       → EXIT LOOP (continue to next sequential phase after loop)
 
-5. INJECT LOOP PARAMETERS (for next iteration):
-   Add these to parameter resolution for next iteration:
+5. INJECT LOOP PARAMETERS:
+   Add these to parameter resolution (available from first iteration):
    - LOOP_INDEX: {current_iter}
    - LOOP_NAME: "{loop_name}"
    - LOOP_ITERATION: {current_iter}
+
+   Note: These parameters are injected before the FIRST iteration (when current_iter=1)
+   and updated before each subsequent iteration.
 
 6. CHECK PHASE OVERRIDE (if allow_phase_control: true):
    If loop.allow_phase_control == true:
@@ -431,121 +420,33 @@ After completing a phase, check if loop continuation is needed:
 
 6a. CHECK EXIT CONDITION (declarative exit):
    If loop has "exit_condition" field:
-      1. RESOLVE PARAMETERS:
-         For each parameter in exit_condition.parameters_used:
-         - Load value from runtime-parameters.yaml
-         - If parameter not available:
-            → ERROR: "Exit condition evaluation failed"
-            → ERROR: "Parameter ${param} not found in runtime parameters"
-            → INFO: "Ensure previous phases output ${param}"
-            → ABORT workflow
 
-         Build resolved expression by substituting parameter values:
-         Example:
-         - Original: "$CONVERGENCE_DELTA < $CONVERGENCE_THRESHOLD"
-         - Resolved: "0.008 < 0.01"
+      **Implementation**: Follow the Exit Condition Protocol defined in SPECIFICATION.md (Exit Condition Protocol section).
 
-      2. DETERMINE EXPRESSION TYPE:
-         Analyze resolved expression to determine evaluation strategy:
-         - NUMERIC: Contains numeric literals and comparison operators (<, >, <=, >=)
-         - STRING: Contains quoted strings and equality operators (==, !=)
-         - BOOLEAN: Contains boolean operators (&&, ||, !) or boolean literals (true, false)
+      **Key Steps**:
+      1. Resolve parameters from runtime-parameters.yaml
+      2. Substitute parameter values into expression
+      3. Evaluate expression using safe bash/bc translation (see SPEC for security rules)
+      4. Check result (1=true, 0=false)
 
-      3. TRANSLATE TO BASH/BC:
-         Based on expression type, translate to safe bash expression:
+      **If expression evaluates to TRUE** (exit condition met):
+         → LOG: "[LOOP_EXIT_CONDITION] Loop '{loop_name}' exit condition met"
+         → LOG: "[LOOP_EXIT_CONDITION] Expression: {original_expression}"
+         → LOG: "[LOOP_EXIT_CONDITION] Resolved: {resolved_expression}"
+         → ANNOUNCE: "✓ Loop '{loop_name}' exit condition satisfied: {description}"
+         → Update loop_state.yaml with exit condition details
+         → EXIT LOOP (go to step 9)
 
-         FOR NUMERIC COMPARISONS:
-         - Use bc -l for floating-point evaluation
-         - Wrap in $(echo "expression" | bc -l)
-         - Result: 1 (true) or 0 (false)
+      **If expression evaluates to FALSE** (continue looping):
+         → LOG: "[LOOP_EXIT_CONDITION_FALSE] Exit condition not met, continuing loop"
+         → LOG: "[LOOP_EXIT_CONDITION_FALSE] Expression: {resolved_expression}"
+         → CONTINUE to step 7 (check fixed iterations)
 
-         Example:
-         ```bash
-         RESULT=$(echo "0.008 < 0.01" | bc -l)
-         # RESULT = 1 (true)
-         ```
+      **On Evaluation Error**:
+         → ERROR: "Exit condition evaluation failed: {error_message}"
+         → ABORT workflow
 
-         FOR STRING COMPARISONS:
-         - Use bash [[ ]] test for string equality
-         - Properly quote string values
-         - Support == and != operators
-
-         Example:
-         ```bash
-         if [[ "complete" == "complete" ]]; then
-           RESULT=1
-         else
-           RESULT=0
-         fi
-         ```
-
-         FOR BOOLEAN EXPRESSIONS:
-         - Use bash native boolean operators
-         - Translate && (logical AND), || (logical OR), ! (logical NOT)
-         - Use [[ ]] for test expressions
-
-         Example:
-         ```bash
-         if [[ 1 -eq 1 ]] && [[ 0 -lt 5 ]]; then
-           RESULT=1
-         else
-           RESULT=0
-         fi
-         ```
-
-         FOR COMPOUND EXPRESSIONS (mixed types):
-         - Parse expression tree
-         - Evaluate sub-expressions left-to-right
-         - Combine results with boolean operators
-
-         Example: "$ERROR_COUNT == 0 && $QUALITY >= 95"
-         ```bash
-         ERROR_CHECK=$(echo "0 == 0" | bc -l)
-         QUALITY_CHECK=$(echo "98 >= 95" | bc -l)
-         if [[ $ERROR_CHECK -eq 1 ]] && [[ $QUALITY_CHECK -eq 1 ]]; then
-           RESULT=1
-         else
-           RESULT=0
-         fi
-         ```
-
-      4. EXECUTE IN SAFE CONTEXT:
-         Execute translated expression in isolated context:
-         - No shell variable expansion (values already resolved)
-         - No command substitution outside bc
-         - Capture exit code and output
-
-         If execution fails:
-            → ERROR: "Exit condition evaluation failed"
-            → ERROR: "Expression: {original_expression}"
-            → ERROR: "Resolved: {resolved_expression}"
-            → ERROR: "Bash error: {error_message}"
-            → ABORT workflow
-
-      5. EVALUATE RESULT:
-         If RESULT == 1 (expression is TRUE):
-            → LOG: "[LOOP_EXIT_CONDITION] Loop '{loop_name}' exit condition met"
-            → LOG: "[LOOP_EXIT_CONDITION] Expression: {original_expression}"
-            → LOG: "[LOOP_EXIT_CONDITION] Resolved: {resolved_expression}"
-            → ANNOUNCE: "✓ Loop '{loop_name}' exit condition satisfied: {description}"
-            → Update loop_state.yaml with exit condition details
-            → EXIT LOOP (go to step 9)
-
-         If RESULT == 0 (expression is FALSE):
-            → LOG: "[LOOP_EXIT_CONDITION_FALSE] Exit condition not met, continuing loop"
-            → LOG: "[LOOP_EXIT_CONDITION_FALSE] Expression: {resolved_expression}"
-            → CONTINUE to step 7 (check fixed iterations)
-
-      6. UPDATE LOOP STATE:
-         Add exit condition evaluation to iteration_history:
-         ```yaml
-         iteration_history:
-           - iteration: {current_iter}
-             exit_condition_checked: true
-             exit_condition_result: {true/false}
-             exit_condition_expression: "{original}"
-             exit_condition_resolved: "{resolved}"
-         ```
+      **Loop State Update**: Add evaluation results to iteration_history in loop_state.yaml
 
 7. CHECK FIXED ITERATIONS (default behavior):
    If loop has "iterations" field:
