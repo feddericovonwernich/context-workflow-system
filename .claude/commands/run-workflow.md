@@ -309,25 +309,50 @@ If no `loops` section exists:
 
 ### 3b. Exit Condition Validator
 
-For each loop with `exit_condition` field, validate expression during initialization according to **SPECIFICATION.md Exit Condition Protocol** (lines 577-631):
+For each loop with `exit_condition` field, validate expression during initialization according to **SPECIFICATION.md Exit Condition Protocol** (lines 832-975):
 
 **Validation Steps**:
 1. **Mutual Exclusivity**: Check loop doesn't have both `exit_condition` and `iterations` fields
+   - ERROR if both present: "Loop '{name}' cannot have both 'exit_condition' and 'iterations'"
+
 2. **Parameter Validation**: All parameter references (`$PARAM` or `${PARAM}`) must be declared in workflow.yaml
-3. **Shell Security**: No dangerous metacharacters (`;`, `|`, backticks, command substitution)
+   - Extract all `$PARAM_NAME` and `${PARAM_NAME}` from expression
+   - Verify each parameter exists in workflow.yaml parameters section
+   - Verify each parameter name matches pattern `^[A-Z][A-Z0-9_]*$`
+   - ERROR if undeclared: "Exit condition references undeclared parameter: {param}"
+   - ERROR if invalid name: "Parameter name '{param}' must be UPPER_SNAKE_CASE"
+
+3. **Shell Security - Forbidden Pattern Detection**:
+   Scan expression for dangerous metacharacters (prevents injection attacks):
+   - Check for `;` (semicolon) → ERROR: "Forbidden character ';' (command chaining) in exit condition"
+   - Check for `|` not in `||` (pipe) → ERROR: "Forbidden character '|' (command piping) in exit condition"
+   - Check for `&` not in `&&` (ampersand) → ERROR: "Forbidden character '&' (background execution) in exit condition"
+   - Check for `` ` `` (backtick) → ERROR: "Forbidden backtick (command substitution) in exit condition"
+   - Check for `$(` not followed by param name → ERROR: "Forbidden command substitution $(...) in exit condition"
+   - Check for `<(` or `>(` → ERROR: "Forbidden process substitution in exit condition"
+   - Check for `eval`, `exec`, `source` keywords → ERROR: "Forbidden code execution keyword in exit condition"
+
 4. **Operator Validation**: Only supported operators (`<`, `>`, `<=`, `>=`, `==`, `!=`, `&&`, `||`, `!`)
+   - Verify expression only uses whitelisted operators
+   - ERROR if invalid operator found: "Unsupported operator in exit condition"
+
 5. **Syntax Validation**: Parameters use UPPER_SNAKE_CASE, literals are properly formatted
+   - Numeric literals: `42`, `3.14`, `-5.2`
+   - String literals: `'value'` or `"value"` (must be quoted)
+   - Boolean literals: `true`, `false`
+   - Parentheses for grouping: `(`, `)`
+
 6. **Store Validated Expression**: Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with validated expression and extracted parameter list
 
 **On Success**:
 - LOG: "[EXIT_CONDITION_VALIDATED] Loop '{name}': {expression}"
-- Store in <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with `validated: true` flag
+- Store in <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with `validated: true` flag and parameter list
 
 **On Failure**:
-- ERROR with specific message (see SPECIFICATION.md for complete error message formats)
+- ERROR with specific message (see above for error formats)
 - ABORT workflow startup
 
-See `.claude/docs/SPECIFICATION.md` lines 577-631 for complete validation rules, operator list, and error messages.
+See `.claude/docs/SPECIFICATION.md` lines 832-975 for complete validation rules, security constraints, and error message formats.
 
 ### 4. Phase Execution Loop (Agent-Based)
 For each phase:

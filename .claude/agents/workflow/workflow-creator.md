@@ -311,10 +311,13 @@ if [ ! -f "$REQUIREMENTS_DOC" ]; then exit 1; fi
 ├── phase-01-<action>.md      # First execution phase
 ├── phase-02-<action>.md      # Second phase
 ├── phase-0N-validate.md      # Final validation
-├── runtime-parameters.yaml    # GENERATED at runtime
-├── execution.log              # GENERATED at runtime
-└── examples/
-    └── parameters.yaml        # Example parameters
+├── examples/
+│   └── parameters.yaml        # Example parameters
+└── runs/                      # GENERATED: Execution history
+    └── wf-YYYYMMDD-HHMMSS-*/  # Per-run metadata (timestamped)
+        ├── runtime-parameters.yaml
+        ├── execution.log
+        └── loop_state.yaml (if loops exist)
 ```
 
 Remember: Generate workflows that are immediately executable, well-documented, and production-ready. Focus on clarity, completeness, and intelligent phase breakdown that reflects best practices for the identified workflow type.

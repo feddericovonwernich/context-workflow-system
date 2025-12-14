@@ -138,7 +138,7 @@ If `loops` section exists in workflow.yaml:
 
 **Exit Condition Validation**:
 
-If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exit Condition Protocol** (lines 577-631):
+If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exit Condition Protocol** (lines 832-975):
 
 **Key Checks** (see spec for complete validation rules):
 - [ ] Mutual exclusivity with `iterations` field (ERROR if both present)
@@ -149,7 +149,7 @@ If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exi
 - [ ] Type compatibility checks (WARNING for mismatches)
 - [ ] Description field present (WARNING if missing)
 
-**Reference**: See `.claude/docs/SPECIFICATION.md` lines 577-631 for complete validation rules, error messages, and examples.
+**Reference**: See `.claude/docs/SPECIFICATION.md` lines 832-975 for complete validation rules, error messages, and examples.
 
 ### Phase 4: Phase File Validation
 
