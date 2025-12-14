@@ -1,0 +1,19 @@
+name: simple-test
+description: "Simple workflow without loops to test backward compatibility"
+version: 1.0.0
+
+parameters:
+  OUTPUT_DIR:
+    type: directory
+    required: true
+    description: "Output directory"
+
+phases:
+  require_confirmation: false
+  allow_retry: true
+  generate_logs: true
+  stop_on_failure: true
+
+metadata:
+  workflow_type: testing
+  complexity: simple

@@ -1,0 +1,54 @@
+name: convergence-example
+description: "Example workflow demonstrating iterative refinement with convergence testing and loop control"
+version: 1.0.0
+
+parameters:
+  OUTPUT_DIR:
+    type: directory
+    required: true
+    description: "Output directory for iteration results"
+
+  CONVERGENCE_THRESHOLD:
+    type: number
+    required: false
+    default: 0.01
+    description: "Convergence threshold - loop exits when delta falls below this value"
+
+  MAX_LOOP_ITERATIONS:
+    type: integer
+    required: false
+    default: 15
+    description: "Maximum refinement iterations allowed"
+
+  INITIAL_VALUE:
+    type: number
+    required: false
+    default: 1.0
+    description: "Starting value for convergence simulation"
+
+phases:
+  require_confirmation: false
+  allow_retry: true
+  generate_logs: true
+  stop_on_failure: true
+
+loops:
+  - name: refinement-loop
+    description: "Iterative refinement until convergence threshold met or max iterations reached"
+    phases: [2, 3, 4]
+    max_iterations: 15
+    # Declarative exit condition evaluated by orchestrator
+    exit_condition:
+      expression: "$CONVERGENCE_DELTA < $CONVERGENCE_THRESHOLD"
+      description: "Exit when convergence achieved (delta below threshold)"
+    # Allow phase override for exceptional cases (errors, early exit)
+    allow_phase_control: true
+
+metadata:
+  workflow_type: requirements-processing
+  complexity: medium
+  architecture_notes:
+    - "Demonstrates hybrid loop control: declarative exit_condition + phase override"
+    - "exit_condition provides standard convergence check (DELTA < THRESHOLD)"
+    - "Phase 4 can override for exceptional cases (errors, early exit)"
+    - "Control priority: max_iterations > phase override > exit_condition"
