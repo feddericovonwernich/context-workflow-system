@@ -187,7 +187,7 @@ FIX: Rename phase-04 to phase-03 or add missing phase
 ### With Workflow Creation
 ```bash
 # Create then validate
-/create-workflow spec.md --name feature-workflow
+/create-workflow spec.md --name=feature-workflow
 /validate-workflow .claude/workflows/feature-workflow
 ```
 

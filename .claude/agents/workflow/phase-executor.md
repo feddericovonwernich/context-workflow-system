@@ -82,30 +82,64 @@ Create these files:
 
 ## Parallel Execution Context
 
-When executing in parallel mode, you may receive context indicating you are one of multiple agents processing similar items:
+In parallel mode, you process ONE work item from a larger set:
 
 ```
 ## Phase: [Phase Name] - PARALLEL EXECUTION
 
 ### Parallel Context
-- Work Item: [specific item assigned to you]
-- Total Items: [N items being processed in parallel]
+- Work Item: [your assigned item]
 - Your Assignment: Process item [X] of [N]
-
-### Your Input Files
-- [path/to/specific/work-item.md] (WORK_ITEM_FILE)
-
-### Common Parameters
-- OUTPUT_DIR: /path/to/output
-- OTHER_PARAM: value
 ```
 
-**Important for Parallel Execution**:
-1. Focus ONLY on your assigned work item
-2. Do not attempt to process other items
-3. Write outputs to the pattern specified (your outputs must not conflict with other agents)
-4. Your completion report will be aggregated with others by the orchestrator
-5. You still cannot invoke other agents - work directly on your item
+**Rules**: Focus ONLY on your assigned item. Write outputs to specified pattern (no conflicts with other agents). Your completion report is aggregated by orchestrator.
+
+## Task Iteration Context
+
+For large task lists, the orchestrator executes your phase once per task. You receive `TASK_ID`, `TASK_INDEX`, and `TASK_DATA` parameters.
+
+**Requirements**:
+1. Focus ONLY on your assigned `TASK_ID`
+2. Create result file: `<workflow-dir>/runs/<run_id>/results/{TASK_ID}-result.json`
+3. Result format:
+```json
+{
+  "task_id": "TASK-001",
+  "status": "success",
+  "error": null,
+  "outputs": {"files_created": ["path/to/output.ts"], "summary": "..."}
+}
+```
+4. Valid status: `success`, `failure`, `blocked` (include reason in `error` if blocked)
+
+## Loop Execution Context
+
+When executing within a workflow loop, the orchestrator injects automatic loop parameters:
+
+```
+### Loop Parameters
+- LOOP_INDEX: 3 (integer)           # Current iteration (1-based)
+- LOOP_NAME: refinement-loop        # Loop identifier
+- LOOP_ITERATION: 3 (integer)       # Alias for LOOP_INDEX
+```
+
+**Loop Control via Phase Override**:
+Phases can dynamically control loop continuation by discovering `LOOP_CONTINUE` and `LOOP_REASON` parameters:
+
+```yaml
+# In your completion report
+phase_completion:
+  status: SUCCESS
+  parameters_discovered:
+    CONVERGENCE_DELTA: 0.008
+    LOOP_CONTINUE: false              # Exit loop after this iteration
+    LOOP_REASON: "Converged (delta < 0.01 threshold)"
+```
+
+**Loop Control Rules**:
+- `LOOP_CONTINUE: false` → Exit loop after this iteration
+- `LOOP_REASON` → Human-readable explanation (logged by orchestrator)
+- If not set, loop continues based on workflow.yaml configuration
 
 ## Output Requirements
 
@@ -114,35 +148,9 @@ When executing in parallel mode, you may receive context indicating you are one 
 3. **Status Reporting**: Clearly indicate success or failure with specific details
 4. **Error Details**: If phase cannot complete, explain why and what's missing
 
-## Runtime Parameters File
+## Runtime Parameters
 
-The orchestrator maintains a `runtime-parameters.yaml` file that tracks parameters through workflow execution. When you discover new parameters, they will be merged into this file.
-
-**File Location**: `<workflow-directory>/runs/<workflow_run_id>/runtime-parameters.yaml`
-
-**Note on Runtime Parameters**: The orchestrator manages runtime-parameters.yaml at the path shown above. Phase executors don't need to know this path - the orchestrator provides resolved parameter values directly in the phase prompt.
-
-**Structure**:
-```yaml
-generated_at: "2025-01-13T10:30:00Z"
-workflow_run_id: "wf-20250113-103000-abc123"
-
-initial:                    # Parameters from workflow.yaml and CLI (unchanged)
-  OUTPUT_DIR: "./outputs"
-  ENVIRONMENT: "production"
-
-discovered:                 # Parameters discovered during execution (cumulative)
-  SPECS_COUNT: 12
-  DATABASE_TYPE: "postgresql"
-
-current:                    # Merged state (initial + discovered)
-  OUTPUT_DIR: "./outputs"
-  ENVIRONMENT: "production"
-  SPECS_COUNT: 12
-  DATABASE_TYPE: "postgresql"
-```
-
-**Your Role**: Report discovered parameters in your completion report. The orchestrator handles file updates.
+The orchestrator manages `runtime-parameters.yaml` automatically. Report discovered parameters in your completion report—the orchestrator handles file updates.
 
 ```yaml
 # In your completion report:

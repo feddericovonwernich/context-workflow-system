@@ -309,7 +309,7 @@ If no `loops` section exists:
 
 ### 3b. Exit Condition Validator
 
-For each loop with `exit_condition` field, validate expression during initialization according to **SPECIFICATION.md Exit Condition Protocol** (lines 832-975):
+For each loop with `exit_condition` field, validate expression during initialization according to **SPECIFICATION.md** section `### Exit Condition Protocol`:
 
 **Validation Steps**:
 1. **Mutual Exclusivity**: Check loop doesn't have both `exit_condition` and `iterations` fields
@@ -352,7 +352,7 @@ For each loop with `exit_condition` field, validate expression during initializa
 - ERROR with specific message (see above for error formats)
 - ABORT workflow startup
 
-See `.claude/docs/SPECIFICATION.md` lines 832-975 for complete validation rules, security constraints, and error message formats.
+See `.claude/docs/SPECIFICATION.md` section `### Exit Condition Protocol` for complete validation rules, security constraints, and error message formats.
 
 ### 4. Phase Execution Loop (Agent-Based)
 For each phase:

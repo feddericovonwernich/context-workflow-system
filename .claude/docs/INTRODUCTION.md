@@ -640,8 +640,9 @@ loops:
 **Loop Control Priority**:
 1. **max_iterations** (HIGHEST): Safety limit, cannot be exceeded
 2. **Phase override** (LOOP_CONTINUE parameter): Dynamic control
-3. **Fixed iterations**: Default behavior
-4. **Default exit**: No control mechanism active
+3. **exit_condition** (declarative): Expression-based exit in workflow.yaml
+4. **Fixed iterations**: Default behavior
+5. **Default exit**: No control mechanism active
 
 **Phase Control Example**:
 ```yaml
@@ -820,9 +821,12 @@ This architecture ensures that complex technical processes can be automated safe
         ├── workflow.yaml
         ├── README.md
         ├── phase-*.md
-        ├── runtime-parameters.yaml  # GENERATED
-        ├── execution.log            # GENERATED
-        └── examples/
+        ├── examples/
+        └── runs/                           # GENERATED: Execution history
+            └── wf-YYYYMMDD-HHMMSS-*/       # Per-run metadata (timestamped)
+                ├── runtime-parameters.yaml
+                ├── execution.log
+                └── loop_state.yaml         # If workflow uses loops
 ```
 
 ### Agent Types

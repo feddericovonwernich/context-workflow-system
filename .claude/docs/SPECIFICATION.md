@@ -192,8 +192,8 @@ phases:
 
 ## Phase Metadata Schema
 
-### Required Structure
-Every phase file MUST begin with a YAML frontmatter section:
+### Recommended Structure
+Every phase file SHOULD begin with a YAML frontmatter section (WARNING issued if missing, but phases will still execute with implicit parameter passing):
 
 ```yaml
 ---
@@ -247,42 +247,30 @@ phase_metadata:
 
 ### Model Selection
 
-Phases can specify which Claude model executes them:
+Phases can override the workflow's default model:
 
 ```yaml
 phase_metadata:
   model: opus  # Optional: opus, sonnet, or haiku
 ```
 
-**Resolution Priority**:
-1. Phase-level `model` field (highest priority)
-2. Workflow-level `phases.default_model`
-3. System default ("sonnet")
+See [`default_model`](#default_model) above for resolution priority and model descriptions.
 
-**Valid Values**: `opus`, `sonnet`, `haiku`
-
-**Use Cases**:
-- `opus`: Deep reasoning, complex analysis, sophisticated code generation
-- `sonnet`: Balanced performance and cost (default, recommended for most phases)
-- `haiku`: Simple operations, quick extraction, fast summarization
-
-**Examples**:
+**Example** - Mixed model workflow:
 ```yaml
-# Complex analysis phase uses Opus
+# Phase 01: Complex analysis uses Opus
 phase_metadata:
   model: opus
   inputs:
     files:
       - name: REQUIREMENTS_DOC
-        required: true
 
-# Simple extraction phase uses Haiku
+# Phase 02: Simple extraction uses Haiku
 phase_metadata:
   model: haiku
   inputs:
     files:
       - name: SOURCE_FILE
-        required: true
 ```
 
 ### Parameter Interpolation
@@ -337,13 +325,6 @@ path: "$OUTPUT_DIR/$SPECS_DIR/report.md"
 | `file` | File path | `"./config.yaml"` | File should exist |
 | `directory` | Directory path | `"./outputs"` | Directory should exist |
 | `array` | List of values | `["a", "b", "c"]` | Valid JSON/YAML array |
-
-### Parameter Resolution Order
-1. Command-line arguments (highest priority)
-2. Environment variables with `WORKFLOW_` prefix (e.g., `WORKFLOW_OUTPUT_DIR` for parameter `OUTPUT_DIR`)
-3. Previous phase outputs (runtime-parameters.yaml)
-4. Default values in workflow.yaml
-5. Default values in phase metadata
 
 ### Parameter Naming Conventions
 - **Format**: UPPER_SNAKE_CASE for consistency
@@ -1055,9 +1036,9 @@ These parameters are available for conditional logic and logging within loop pha
 
 ### Loop State Tracking
 
-The orchestrator creates and maintains `loop_state.yaml` in the workflow directory:
+The orchestrator creates and maintains `loop_state.yaml` in the run directory:
 
-**File Location**: `<workflow-dir>/loop_state.yaml`
+**File Location**: `<workflow-dir>/runs/<workflow_run_id>/loop_state.yaml`
 
 **Structure**:
 ```yaml
@@ -1216,7 +1197,6 @@ Iteration 3: Phase 2 → Phase 3 → Phase 4 → (evaluate loop)
 
 **Not Supported in MVP**:
 - Nested loops (loops within loops)
-- Declarative exit conditions (expression-based exit in workflow.yaml)
 - Result aggregation across iterations
 - Loop-specific state scoping
 

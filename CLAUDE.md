@@ -52,7 +52,7 @@ This isolation is fundamental to reproducibility and traceability.
 
 Parameters flow unidirectionally: **CLI Args → Env Vars → workflow.yaml → Phase Outputs → Next Phases**
 
-See `.claude/docs/SPECIFICATION.md` lines 273-279 for complete resolution priority order.
+See `.claude/docs/SPECIFICATION.md` section "Parameter Interpolation" for complete resolution priority order.
 
 ### Workflow Structure
 
@@ -61,7 +61,7 @@ Minimum requirements:
 - Sequential numbering with no gaps
 - Phase files have YAML frontmatter with metadata contract
 
-See `.claude/docs/SPECIFICATION.md` lines 44-98 for complete file structure requirements.
+See `.claude/docs/SPECIFICATION.md` section "File Structure Requirements" for complete structure.
 
 ## Common Development Commands
 
@@ -189,13 +189,13 @@ cp .claude/templates/phase-template.md .claude/workflows/<name>/phase-XX-<name>.
 
 Key metadata fields: `inputs.files`, `inputs.parameters`, `outputs.files`, `outputs.parameters`, `success_criteria`
 
-See SPECIFICATION.md lines 169-217 for complete phase metadata schema.
+See SPECIFICATION.md section "Phase Metadata Schema" for complete schema.
 
 ### Parallel Execution
 
 For phases that process multiple items in parallel, use `execution_mode: parallel` with `parallel_config`. The orchestrator launches one agent per work item and aggregates results.
 
-See SPECIFICATION.md lines 472-508 for complete parallel execution configuration.
+See SPECIFICATION.md section "Parallel Execution" for complete configuration.
 
 ## Non-Obvious Patterns
 
@@ -211,7 +211,7 @@ See SPECIFICATION.md lines 472-508 for complete parallel execution configuration
 - Interpolated by orchestrator before phase execution
 - Stored in runtime-parameters.yaml
 
-See SPECIFICATION.md lines 314-343 for complete details.
+See SPECIFICATION.md section "Template vs Runtime Parameter Interpolation" for details.
 
 ### Phase 00 Special Semantics
 
@@ -225,7 +225,7 @@ Phase 00 is reserved for setup/discovery:
 
 Phases can discover new parameters during execution and pass them forward via the phase completion report. The orchestrator writes these to `runtime-parameters.yaml` for subsequent phases.
 
-See SPECIFICATION.md lines 346-378 for phase completion protocol.
+See SPECIFICATION.md section "Phase Completion Protocol" for details.
 
 ### Execution Modes
 
@@ -249,7 +249,7 @@ Understanding these principles helps when extending the system:
 - **WARNING**: Deviations from best practices - workflow may have issues
 - **INFO**: Suggestions for improvement - workflow will work but could be better
 
-Always fix ERRORs before running workflows. See SPECIFICATION.md lines 1017-1040 for complete severity definitions.
+Always fix ERRORs before running workflows. See SPECIFICATION.md section "Validation Severity Levels" for definitions.
 
 ## Future Features (Not Yet Implemented)
 

@@ -3,7 +3,7 @@
 ## Commands
 ```bash
 # Create a workflow from input files
-/create-workflow <input-files...> --name <workflow-name> [--type <workflow-type>]
+/create-workflow <input-files...> --name=<workflow-name> [--type=<workflow-type>]
 
 # Execute a workflow
 /run-workflow <workflow-dir> [parameters...]
@@ -207,6 +207,12 @@ task_iteration:
 - `tasks/{id}.json` - Task definitions
 - `results/{id}-result.json` - Per-task results
 - `task-results.json` - Aggregated results
+
+### Output Parameters
+After task iteration completes, these parameters are available:
+- `TASKS_COMPLETED` - Count of successfully completed tasks
+- `TASKS_FAILED` - Count of failed tasks
+- `TASKS_BLOCKED` - Count of blocked tasks
 
 ## Agent Types
 - `phase-executor` - Default isolated executor for running workflow phases

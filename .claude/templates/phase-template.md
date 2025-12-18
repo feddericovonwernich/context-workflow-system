@@ -20,8 +20,7 @@ phase_metadata:
   execution_mode: sequential
 
   # Optional: Claude model for this phase (uncomment to override workflow default)
-  # model: ${MODEL_NAME}  # Template placeholder: opus|sonnet|haiku
-  # Examples: opus (complex reasoning), sonnet (balanced), haiku (fast/simple)
+  # model: sonnet  # opus|sonnet|haiku (workflow-creator may override based on phase complexity)
 
   # For parallel execution, uncomment and configure:
   # parallel_config:
@@ -42,6 +41,7 @@ phase_metadata:
     parameters:
       # List input parameters this phase needs
       - name: ${INPUT_PARAM}  # Template placeholder: workflow-creator fills this (e.g., becomes "OUTPUT_DIR")
+        type: string  # Optional: string|boolean|integer|number|enum|file|directory|array
         required: true  # Is this parameter required?
         default: ${DEFAULT_VALUE}  # Template placeholder: workflow-creator fills this (e.g., becomes "./outputs")
         description: "${INPUT_PARAM_DESC}"  # Template placeholder: workflow-creator fills this with description
@@ -55,7 +55,16 @@ phase_metadata:
     parameters:
       # List parameters this phase provides to next phases
       - name: ${OUTPUT_PARAM}  # Template placeholder: workflow-creator fills this (e.g., becomes "VALIDATION_PASSED")
+        type: boolean  # Optional: string|boolean|integer|number|enum|file|directory|array
+        required: true  # Is this output parameter required to be produced?
         description: "${OUTPUT_PARAM_DESC}"  # Template placeholder: workflow-creator fills this with description
+
+  # Optional: Conditional execution (uncomment and configure if needed)
+  # prerequisites:
+  #   - condition: "$ENVIRONMENT == 'production'"  # Expression using parameters
+  #     action: require_approval  # require_approval|skip_phase|fail_phase|warning
+  #   - condition: "$SKIP_VALIDATION == true"
+  #     action: skip_phase
 
   # Optional: Suggest a specific agent for this phase
   # preferred_agent: phase-executor

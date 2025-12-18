@@ -138,7 +138,7 @@ If `loops` section exists in workflow.yaml:
 
 **Exit Condition Validation**:
 
-If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exit Condition Protocol** (lines 832-975):
+If loop has `exit_condition` field, validate according to **SPECIFICATION.md** section `### Exit Condition Protocol`:
 
 **Key Checks** (see spec for complete validation rules):
 - [ ] Mutual exclusivity with `iterations` field (ERROR if both present)
@@ -149,7 +149,80 @@ If loop has `exit_condition` field, validate according to **SPECIFICATION.md Exi
 - [ ] Type compatibility checks (WARNING for mismatches)
 - [ ] Description field present (WARNING if missing)
 
-**Reference**: See `.claude/docs/SPECIFICATION.md` lines 832-975 for complete validation rules, error messages, and examples.
+**Reference**: See `.claude/docs/SPECIFICATION.md` section `### Exit Condition Protocol` for complete validation rules, error messages, and examples.
+
+#### Task Iteration Validation
+
+If `task_iteration` section exists in workflow.yaml:
+
+**Structural Checks**:
+- [ ] `enabled` field is boolean (ERROR if not)
+- [ ] `phase` references an existing phase file number (ERROR if missing/invalid)
+- [ ] `task_index_param` follows UPPER_SNAKE_CASE naming (ERROR if invalid pattern)
+- [ ] `tasks_file` path is valid file reference (WARNING if not found)
+- [ ] `batch_size` is positive integer if specified (ERROR if zero or negative)
+- [ ] `resume_from_task` references valid task ID format if specified (WARNING if malformed)
+
+**Semantic Checks**:
+- [ ] Referenced phase exists in workflow (ERROR if phase not found)
+- [ ] Task iteration phase has metadata declaring TASK_ID input parameter (WARNING if missing)
+- [ ] Result directory pattern is valid (INFO if using non-standard location)
+
+**Error Messages**:
+- ERROR: "task_iteration.phase '{phase}' does not reference an existing phase file"
+- ERROR: "task_iteration.task_index_param '{name}' must be UPPER_SNAKE_CASE"
+- WARNING: "task_iteration.tasks_file '{path}' not found at validation time"
+- WARNING: "Phase {phase} should declare TASK_ID as input parameter for task iteration"
+
+#### Model Selection Validation
+
+Validate model selection fields in workflow.yaml and phase files:
+
+**Workflow-level Check**:
+- [ ] `phases.default_model` must be one of: `opus`, `sonnet`, `haiku` (ERROR if invalid)
+- [ ] If not specified, defaults to `sonnet` (no validation error)
+
+**Phase-level Check**:
+- [ ] `phase_metadata.model` must be one of: `opus`, `sonnet`, `haiku` (ERROR if invalid)
+- [ ] Phase model overrides workflow default (INFO - document for transparency)
+
+**Error Messages**:
+- ERROR: "Invalid model '{model}' in phases.default_model. Must be: opus, sonnet, or haiku"
+- ERROR: "Invalid model '{model}' in phase {phase} metadata. Must be: opus, sonnet, or haiku"
+- INFO: "Phase {phase} overrides workflow default_model ({default}) with {phase_model}"
+
+#### Advanced Parameter Validation
+
+Validate advanced parameter constraints (min, max, pattern) in workflow.yaml:
+
+**Constraint Checks**:
+- [ ] `min` value is number for numeric types (integer, number) (ERROR if type mismatch)
+- [ ] `max` value is number for numeric types (ERROR if type mismatch)
+- [ ] `min` <= `max` when both specified (ERROR if min > max)
+- [ ] `pattern` is valid regex for string types (ERROR if invalid regex)
+- [ ] `pattern` only used with string type (WARNING if used with other types)
+- [ ] Default value satisfies constraints if specified (ERROR if default violates constraints)
+
+**Examples**:
+```yaml
+# Valid constraint usage
+MAX_RETRIES:
+  type: integer
+  min: 1
+  max: 10
+  default: 3  # Satisfies 1 <= 3 <= 10
+
+WORKFLOW_ID:
+  type: string
+  pattern: "^wf-[a-z0-9-]+$"
+  default: "wf-example"  # Matches pattern
+```
+
+**Error Messages**:
+- ERROR: "Parameter '{name}' min ({min}) is greater than max ({max})"
+- ERROR: "Parameter '{name}' default value ({default}) violates min constraint ({min})"
+- ERROR: "Parameter '{name}' pattern is not a valid regular expression: {error}"
+- WARNING: "Parameter '{name}' has pattern constraint but type is '{type}' (patterns only apply to strings)"
 
 ### Phase 4: Phase File Validation
 
