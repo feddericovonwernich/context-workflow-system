@@ -90,6 +90,33 @@ See `.claude/docs/SPECIFICATION.md` lines 44-98 for complete file structure requ
 # - README.md (documentation)
 ```
 
+### Model Selection
+
+Control which Claude model executes each workflow phase for optimal cost and performance.
+
+**Workflow default**:
+```yaml
+phases:
+  default_model: sonnet  # Applies to all phases unless overridden
+```
+
+**Phase override**:
+```yaml
+phase_metadata:
+  model: opus  # This specific phase uses opus
+```
+
+**Best Practices**:
+- Use `opus` for complex reasoning, sophisticated code generation, deep analysis
+- Use `sonnet` for general tasks (recommended default, balanced performance/cost)
+- Use `haiku` for simple extraction, quick summarization, fast validation
+- Set workflow default, override specific phases as needed
+
+**Example**: A document processing workflow might use:
+- Phase 01 (extract data): `haiku` - fast extraction
+- Phase 02 (complex analysis): `opus` - deep reasoning
+- Phase 03 (generate report): `sonnet` - balanced writing
+
 ### Installation
 
 ```bash

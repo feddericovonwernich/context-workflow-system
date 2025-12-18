@@ -47,6 +47,7 @@ phases:                  # Optional: execution config
   generate_logs: true
   stop_on_failure: true
   parallel_execution_supported: false  # Set true if workflow has parallel phases
+  default_model: sonnet                # Optional: opus|sonnet|haiku (default: sonnet)
 ```
 
 ## Phase Metadata (Recommended at top of each phase file)
@@ -54,7 +55,8 @@ phases:                  # Optional: execution config
 ---
 phase_metadata:
   execution_mode: sequential  # or parallel
-  
+  model: sonnet              # Optional: opus|sonnet|haiku (overrides workflow default)
+
   # For parallel execution:
   parallel_config:
     agent_type: feature-specifier
@@ -160,6 +162,30 @@ Parameters can be set via environment variables using the `WORKFLOW_` prefix:
 - Multiple agents concurrent
 - One per work item
 - Requires parallel_config
+
+## Model Selection
+
+### Per-Phase
+```yaml
+phase_metadata:
+  model: opus  # opus|sonnet|haiku
+```
+
+### Workflow Default
+```yaml
+phases:
+  default_model: sonnet
+```
+
+### Resolution Priority
+1. Phase `model` (highest)
+2. Workflow `default_model`
+3. System default (sonnet)
+
+### Model Guide
+- **opus**: Complex reasoning, best quality
+- **sonnet**: Balanced, recommended default
+- **haiku**: Fast, simple tasks
 
 ## Agent Types
 - `phase-executor` - Default isolated executor for running workflow phases

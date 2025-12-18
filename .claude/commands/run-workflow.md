@@ -375,6 +375,17 @@ For each phase:
    Else:
       → Execute Standard Phase (continue with step 6)
 
+5a. RESOLVE MODEL FOR PHASE:
+    1. Extract phase_metadata.model if present from phase frontmatter YAML
+    2. Extract workflow.yaml phases.default_model if present
+    3. Apply resolution priority:
+       - IF phase_metadata.model exists AND is valid → use it (model_source = "phase override")
+       - ELSE IF workflow.phases.default_model exists AND is valid → use it (model_source = "workflow default")
+       - ELSE → use "sonnet" (model_source = "system default")
+    4. Validate resolved_model is one of: opus, sonnet, haiku
+       - If invalid, ERROR and abort workflow execution
+    5. Store resolved_model and model_source for display and Task invocation
+
 6. **CRITICAL: Display resolved context in main thread output**
    **This MUST happen in your main response, NOT inside the agent**
    **Display this BEFORE calling the Task tool:**
@@ -382,6 +393,8 @@ For each phase:
    ═══════════════════════════════════════════════════════
    PHASE X: [Phase Name]
    ═══════════════════════════════════════════════════════
+   Model: [resolved_model] ([model_source])
+
    Input Files:
    - [FILE_NAME]: [resolved path]
    - [FILE_NAME]: [resolved path]
@@ -405,6 +418,7 @@ For each phase:
    - subagent_type: "phase-executor"
    - description: "Execute Phase X: [Name]"
    - prompt: [constructed prompt with all context]
+   - model: [resolved_model]  # Pass resolved model from step 5a
 9. Process agent result:
    - Verify expected outputs were created
    - Extract any new parameters for next phases
@@ -588,6 +602,8 @@ When `execution_mode: parallel` is set in phase metadata:
    ═══════════════════════════════════════════════════════
    PHASE X: [Phase Name] - PARALLEL EXECUTION
    ═══════════════════════════════════════════════════════
+   Model: [resolved_model] ([model_source]) - applies to all parallel agents
+
    Work Items Found: [count]
    - [work_item_1] → [output_1]
    - [work_item_2] → [output_2]
@@ -607,6 +623,7 @@ When `execution_mode: parallel` is set in phase metadata:
    - Use the agent_type specified in parallel_config (can be phase-executor or a specialized agent)
    - Pass work item via work_item_parameter
    - Include common parameters for all agents
+   - Pass resolved model to ALL parallel agents (same model for all)
    - Execute multiple agents in single message (for parallelism)
 
 5. Launch parallel agents (multiple Task tool calls in single message for true parallelism)

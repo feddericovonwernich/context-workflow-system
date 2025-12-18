@@ -19,6 +19,10 @@ phase_metadata:
   # Execution mode: sequential (default) or parallel
   execution_mode: sequential
 
+  # Optional: Claude model for this phase (uncomment to override workflow default)
+  # model: ${MODEL_NAME}  # Template placeholder: opus|sonnet|haiku
+  # Examples: opus (complex reasoning), sonnet (balanced), haiku (fast/simple)
+
   # For parallel execution, uncomment and configure:
   # parallel_config:
   #   agent_type: ${AGENT_TYPE}  # Template placeholder: workflow-creator fills this (e.g., "feature-specifier")

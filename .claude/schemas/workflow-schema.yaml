@@ -80,6 +80,18 @@ properties:
         description: Workflow contains phases that support parallel execution
         default: false
 
+      default_model:
+        type: string
+        description: Default Claude model for phase execution (can be overridden per-phase)
+        enum:
+          - opus
+          - sonnet
+          - haiku
+        default: sonnet
+        examples:
+          - sonnet
+          - opus
+
     additionalProperties: false
 
   loops:

@@ -168,6 +168,28 @@ This boolean flag indicates whether the workflow contains phases that use parall
 
 **Note**: This flag is informational. The actual parallel execution is controlled by individual phase metadata (`execution_mode: parallel`), not this workflow-level flag. Setting this to `true` when no phases use parallel mode is a validation warning, not an error.
 
+#### `default_model`
+
+Optional field specifying the default Claude model for phase execution:
+
+```yaml
+phases:
+  default_model: sonnet  # Optional: opus, sonnet, or haiku
+```
+
+**Default**: `sonnet` if not specified
+**Override**: Individual phases can override using `phase_metadata.model`
+
+**Resolution Priority**:
+1. Phase-level `model` field (highest)
+2. Workflow-level `default_model`
+3. System default ("sonnet")
+
+**Model Guide**:
+- `opus`: Complex reasoning, sophisticated analysis, best quality
+- `sonnet`: Balanced performance and cost (recommended default)
+- `haiku`: Fast operations, simple tasks, cost-effective
+
 ## Phase Metadata Schema
 
 ### Required Structure
@@ -217,7 +239,50 @@ phase_metadata:
   
   # Optional: Agent preferences
   preferred_agent: string   # Hint for orchestrator agent selection
+
+  # Optional: Model selection
+  model: string            # Claude model to use for this phase (opus|sonnet|haiku)
 ---
+```
+
+### Model Selection
+
+Phases can specify which Claude model executes them:
+
+```yaml
+phase_metadata:
+  model: opus  # Optional: opus, sonnet, or haiku
+```
+
+**Resolution Priority**:
+1. Phase-level `model` field (highest priority)
+2. Workflow-level `phases.default_model`
+3. System default ("sonnet")
+
+**Valid Values**: `opus`, `sonnet`, `haiku`
+
+**Use Cases**:
+- `opus`: Deep reasoning, complex analysis, sophisticated code generation
+- `sonnet`: Balanced performance and cost (default, recommended for most phases)
+- `haiku`: Simple operations, quick extraction, fast summarization
+
+**Examples**:
+```yaml
+# Complex analysis phase uses Opus
+phase_metadata:
+  model: opus
+  inputs:
+    files:
+      - name: REQUIREMENTS_DOC
+        required: true
+
+# Simple extraction phase uses Haiku
+phase_metadata:
+  model: haiku
+  inputs:
+    files:
+      - name: SOURCE_FILE
+        required: true
 ```
 
 ### Parameter Interpolation

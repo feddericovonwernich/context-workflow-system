@@ -304,7 +304,19 @@ properties:
           - phase-executor
           - workflow-creator
           - custom-domain-agent
-      
+
+      model:
+        type: string
+        description: Claude model to use for executing this phase (overrides workflow default)
+        enum:
+          - opus
+          - sonnet
+          - haiku
+        examples:
+          - opus
+          - sonnet
+          - haiku
+
       prerequisites:
         type: array
         description: Conditions that must be met before phase execution
