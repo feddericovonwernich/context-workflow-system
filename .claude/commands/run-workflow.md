@@ -3,6 +3,8 @@ name: run-workflow
 description: "Execute multi-phase workflows from a specified directory"
 ---
 
+<!-- Updated 2025-12-18: Fixed shell operator documentation to prevent permission errors -->
+
 # Multi-Phase Workflow Runner
 
 Execute complex, multi-phase workflows by automatically discovering and orchestrating phase execution from a workflow directory.
@@ -327,20 +329,20 @@ For each loop with `exit_condition` field, validate expression during initializa
    - Check for `;` (semicolon) → ERROR: "Forbidden character ';' (command chaining) in exit condition"
    - Check for `|` not in `||` (pipe) → ERROR: "Forbidden character '|' (command piping) in exit condition"
    - Check for `&` not in `&&` (ampersand) → ERROR: "Forbidden character '&' (background execution) in exit condition"
-   - Check for `` ` `` (backtick) → ERROR: "Forbidden backtick (command substitution) in exit condition"
-   - Check for `$(` not followed by param name → ERROR: "Forbidden command substitution $(...) in exit condition"
-   - Check for `<(` or `>(` → ERROR: "Forbidden process substitution in exit condition"
+   - Check for backtick character → ERROR: "Forbidden backtick (command substitution) in exit condition"
+   - Check for dollar-paren pattern not followed by param name → ERROR: "Forbidden command substitution in exit condition"
+   - Check for process substitution patterns → ERROR: "Forbidden process substitution in exit condition"
    - Check for `eval`, `exec`, `source` keywords → ERROR: "Forbidden code execution keyword in exit condition"
 
-4. **Operator Validation**: Only supported operators (`<`, `>`, `<=`, `>=`, `==`, `!=`, `&&`, `||`, `!`)
+4. **Operator Validation**: Only supported operators (less than, greater than, less equal, greater equal, equal, not equal, AND, OR, NOT)
    - Verify expression only uses whitelisted operators
    - ERROR if invalid operator found: "Unsupported operator in exit condition"
 
 5. **Syntax Validation**: Parameters use UPPER_SNAKE_CASE, literals are properly formatted
-   - Numeric literals: `42`, `3.14`, `-5.2`
-   - String literals: `'value'` or `"value"` (must be quoted)
-   - Boolean literals: `true`, `false`
-   - Parentheses for grouping: `(`, `)`
+   - Numeric literals: integers, decimals, negative numbers (e.g., 42, 3.14, -5.2)
+   - String literals: must be quoted with single or double quotes
+   - Boolean literals: true or false
+   - Parentheses for grouping allowed
 
 6. **Store Validated Expression**: Update <workflow-dir>/runs/<workflow_run_id>/loop_state.yaml with validated expression and extracted parameter list
 
