@@ -370,10 +370,12 @@ For each phase:
    - Discovered files in output directories
 
 5. CHECK EXECUTION MODE:
-   If phase_metadata.execution_mode == "parallel":
+   If task_iteration.enabled AND phase_num == task_iteration.phase:
+      → Execute Task Iteration Mode (see section 4a2 above)
+   Else If phase_metadata.execution_mode == "parallel":
       → Execute Parallel Phase (see section 4a below)
    Else:
-      → Execute Standard Phase (continue with step 6)
+      → Execute Standard Phase (continue with step 5a)
 
 5a. RESOLVE MODEL FOR PHASE:
     1. Extract phase_metadata.model if present from phase frontmatter YAML
@@ -639,6 +641,173 @@ When `execution_mode: parallel` is set in phase metadata:
    - Mark phase as completed in todo list
    - Generate summary report if specified
    - Update <workflow-dir>/runs/<workflow_run_id>/runtime-parameters.yaml with aggregated values
+```
+
+### 4a2. Task Iteration Mode
+
+**Purpose**: Execute a phase multiple times, once per task, to prevent context exhaustion when processing large task lists.
+
+When `task_iteration` is configured in workflow.yaml and the current phase matches `task_iteration.phase`:
+
+```
+1. LOAD TASK INDEX:
+   task_index_path = runtime_parameters[task_iteration.task_index_param]
+   task_index = load_json(task_index_path)
+   total_tasks = task_index["metadata"]["total_tasks"]
+   execution_order = task_index["execution_order"]  # Array of batches
+
+2. INITIALIZE TASK TRACKING:
+   results_dir = RUN_DIR + "/" + task_iteration.result_dir
+   create_directory(results_dir)
+   completed_tasks = []
+   failed_tasks = []
+   blocked_tasks = []
+
+3. DISPLAY TASK ITERATION BANNER:
+   ═══════════════════════════════════════════════════════
+   PHASE {phase_num}: Task Iteration Mode
+   ═══════════════════════════════════════════════════════
+   Model: [resolved_model] ([model_source])
+
+   Total Tasks: {total_tasks}
+   Execution Order: {len(execution_order)} batches
+   Mode: {task_iteration.sequential ? "Sequential" : "Parallel"}
+   ═══════════════════════════════════════════════════════
+
+4. FOR EACH BATCH in execution_order:
+   batch_num = batch["batch"]
+   batch_tasks = batch["tasks"]
+
+   DISPLAY: "=== Batch {batch_num}: {len(batch_tasks)} tasks ==="
+
+   FOR EACH task_id in batch_tasks:
+       # Resumption: skip completed tasks
+       result_file = results_dir + "/" + task_id + "-result.json"
+       IF file_exists(result_file):
+           result = load_json(result_file)
+           IF result["status"] == "success":
+               completed_tasks.append(task_id)
+               DISPLAY: "✓ {task_id}: Already completed (skipping)"
+               CONTINUE
+
+       # Dependency checking
+       task_file = RUN_DIR + "/" + task_iteration.task_dir + "/" + task_id + ".json"
+       task_def = load_json(task_file)
+       dependencies = task_def.get("dependencies", [])
+
+       all_deps_satisfied = True
+       FOR dep in dependencies:
+           dep_result = results_dir + "/" + dep + "-result.json"
+           IF NOT file_exists(dep_result):
+               all_deps_satisfied = False
+               BREAK
+           dep_status = load_json(dep_result)["status"]
+           IF dep_status != "success":
+               all_deps_satisfied = False
+               BREAK
+
+       IF NOT all_deps_satisfied:
+           blocked_tasks.append(task_id)
+           DISPLAY: "⊘ {task_id}: Blocked (dependencies not satisfied)"
+           CONTINUE
+
+       # Execute single task
+       task_num = len(completed_tasks) + len(failed_tasks) + 1
+       DISPLAY:
+       ───────────────────────────────────────────────────────
+       Task {task_num}/{total_tasks}: {task_id}
+       ───────────────────────────────────────────────────────
+
+       # Launch phase-executor with TASK_ID parameter
+       Launch Task tool:
+           subagent_type: "phase-executor"
+           description: "Execute Phase {phase_num} Task: {task_id}"
+           model: [resolved_model]  # Use resolved model from step 5a
+           prompt: [phase instructions with]:
+               - All runtime parameters
+               - {task_iteration.task_id_param}: {task_id}
+               - {task_iteration.task_index_param}: {task_index_path}
+
+       Wait for agent completion
+
+       # Check result
+       result_file = results_dir + "/" + task_id + "-result.json"
+       IF file_exists(result_file):
+           result = load_json(result_file)
+           task_status = result["status"]
+
+           IF task_status == "success":
+               completed_tasks.append(task_id)
+               DISPLAY: "✓ {task_id}: SUCCESS"
+
+           ELSE IF task_status == "failure":
+               failed_tasks.append(task_id)
+               error = result.get("error", "Unknown error")
+               DISPLAY: "✗ {task_id}: FAILED ({error})"
+
+               # Retry logic
+               IF task_iteration.max_retries_per_task > 0:
+                   FOR retry in range(task_iteration.max_retries_per_task):
+                       DISPLAY: "  Retrying {task_id} (attempt {retry+2})..."
+                       # Re-launch phase-executor
+                       # Check result again
+                       IF result["status"] == "success":
+                           completed_tasks.append(task_id)
+                           failed_tasks.remove(task_id)
+                           BREAK
+
+               IF task_iteration.stop_on_failure:
+                   DISPLAY: "⚠️  Stopping task iteration due to failure"
+                   BREAK outer loop
+
+           ELSE IF task_status == "blocked":
+               blocked_tasks.append(task_id)
+               blocked_by = result.get("blocked_by", "unknown")
+               DISPLAY: "⊘ {task_id}: BLOCKED by {blocked_by}"
+       ELSE:
+           # No result file - agent crashed
+           failed_tasks.append(task_id)
+           DISPLAY: "✗ {task_id}: FAILED (no result file generated)"
+
+5. AGGREGATE RESULTS:
+   aggregated_results = {
+       "metadata": {
+           "workflow_run_id": RUN_ID,
+           "total_tasks": total_tasks,
+           "completed": len(completed_tasks),
+           "failed": len(failed_tasks),
+           "blocked": len(blocked_tasks),
+           "phase": phase_num
+       },
+       "tasks": []
+   }
+
+   FOR task_id in task_index["tasks"]:
+       result_file = results_dir + "/" + task_id + "-result.json"
+       IF file_exists(result_file):
+           aggregated_results["tasks"].append(load_json(result_file))
+
+   save_json(RUN_DIR + "/task-results.json", aggregated_results)
+
+6. UPDATE RUNTIME PARAMETERS:
+   runtime_parameters["TASKS_COMPLETED"] = len(completed_tasks)
+   runtime_parameters["TASKS_FAILED"] = len(failed_tasks)
+   runtime_parameters["TASKS_BLOCKED"] = len(blocked_tasks)
+   save_yaml(runtime_parameters_path, runtime_parameters)
+
+7. DISPLAY TASK ITERATION SUMMARY:
+   ═══════════════════════════════════════════════════════
+   Task Iteration Complete
+   ═══════════════════════════════════════════════════════
+   Completed: {len(completed_tasks)}/{total_tasks}
+   Failed: {len(failed_tasks)}
+   Blocked: {len(blocked_tasks)}
+   ═══════════════════════════════════════════════════════
+
+8. IF task_iteration.stop_on_failure AND failed_tasks:
+       ABORT workflow with error
+   ELSE:
+       CONTINUE to next phase
 ```
 
 ### 5. Completion

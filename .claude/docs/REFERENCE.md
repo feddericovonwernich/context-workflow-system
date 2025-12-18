@@ -187,6 +187,27 @@ phases:
 - **sonnet**: Balanced, recommended default
 - **haiku**: Fast, simple tasks
 
+## Task Iteration
+
+### Configuration
+```yaml
+task_iteration:
+  enabled: true
+  phase: 4
+  task_index_param: TASK_INDEX_PATH
+  task_id_param: TASK_ID
+  task_dir: "tasks"
+  result_dir: "results"
+  max_retries_per_task: 2
+  stop_on_failure: false
+```
+
+### Data Files
+- `task-index.json` - Task list and execution order
+- `tasks/{id}.json` - Task definitions
+- `results/{id}-result.json` - Per-task results
+- `task-results.json` - Aggregated results
+
 ## Agent Types
 - `phase-executor` - Default isolated executor for running workflow phases
 - `workflow-creator` - Analyzes input files and generates complete workflows

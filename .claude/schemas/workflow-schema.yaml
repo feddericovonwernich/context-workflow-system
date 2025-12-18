@@ -192,7 +192,67 @@ properties:
               - required: [iterations]
 
       additionalProperties: false
-  
+
+  task_iteration:
+    type: object
+    description: Optional task-level iteration configuration for large task lists
+    properties:
+      enabled:
+        type: boolean
+        default: false
+        description: Enable task iteration mode for specified phase
+
+      phase:
+        type: integer
+        minimum: 0
+        maximum: 99
+        description: Phase number that should iterate over tasks
+
+      task_index_param:
+        type: string
+        pattern: "^[A-Z][A-Z0-9_]*$"
+        default: TASK_INDEX_PATH
+        description: Parameter name containing path to task index file
+
+      task_id_param:
+        type: string
+        pattern: "^[A-Z][A-Z0-9_]*$"
+        default: TASK_ID
+        description: Parameter name to pass current task ID
+
+      task_dir:
+        type: string
+        default: tasks
+        description: Directory containing task definition files
+
+      result_dir:
+        type: string
+        default: results
+        description: Directory for task result files
+
+      max_retries_per_task:
+        type: integer
+        minimum: 0
+        maximum: 5
+        default: 0
+        description: Number of retries for failed tasks
+
+      stop_on_failure:
+        type: boolean
+        default: false
+        description: Stop all task iteration if any task fails
+
+      sequential:
+        type: boolean
+        default: true
+        description: Execute tasks sequentially (vs parallel)
+
+    required:
+      - enabled
+      - phase
+
+    additionalProperties: false
+
   metadata:
     type: object
     description: Workflow metadata and documentation

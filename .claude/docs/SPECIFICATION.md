@@ -1235,6 +1235,253 @@ These features are planned for future phases after MVP validation.
 3. Phases can opt into loop control via `LOOP_CONTINUE` parameter
 4. Gradual adoption workflow-by-workflow
 
+## Task Iteration
+
+### Purpose
+
+Task iteration allows a phase to execute multiple times, once per task, to prevent context exhaustion when processing large task lists. This is particularly useful when:
+- Processing many independent work items (e.g., 50+ test files)
+- Each item requires minimal context
+- Fresh agent context per item improves quality
+- Resumption capability is important
+
+### Configuration
+
+Add to workflow.yaml:
+
+```yaml
+task_iteration:
+  enabled: true
+  phase: 4                        # Phase number to iterate
+  task_index_param: TASK_INDEX_PATH  # Parameter with task index file path
+  task_id_param: TASK_ID          # Parameter to pass current task ID
+  task_dir: "tasks"               # Directory containing task definition files
+  result_dir: "results"           # Directory for task result files
+  max_retries_per_task: 2         # Retry failed tasks
+  stop_on_failure: false          # Continue despite failures
+  sequential: true                # Execute one task at a time
+```
+
+### Task Index Structure
+
+The task index file defines execution order and dependencies:
+
+**task-index.json**:
+```json
+{
+  "metadata": {
+    "total_tasks": 10,
+    "generated": "2025-12-18T12:00:00Z"
+  },
+  "tasks": ["TASK-1", "TASK-2", "TASK-3", ...],
+  "execution_order": [
+    {"batch": 1, "tasks": ["TASK-1", "TASK-2"]},
+    {"batch": 2, "tasks": ["TASK-3", "TASK-4"]}
+  ]
+}
+```
+
+- **metadata.total_tasks**: Total number of tasks
+- **tasks**: Array of all task IDs
+- **execution_order**: Batches of tasks to execute (batches run sequentially, tasks within batch can be parallel)
+
+### Task Definition Files
+
+Individual task files define task details and dependencies:
+
+**tasks/{task-id}.json**:
+```json
+{
+  "task_id": "TASK-1",
+  "description": "Process component X",
+  "dependencies": ["TASK-0"],  # Must complete before this task
+  "metadata": {
+    "priority": "high",
+    "estimated_time": "5 minutes"
+  }
+}
+```
+
+### Result Files
+
+Each task execution produces a result file:
+
+**results/{task-id}-result.json**:
+```json
+{
+  "task_id": "TASK-1",
+  "status": "success",        # success|failure|blocked
+  "error": null,              # Error message if failed
+  "commit_sha": "abc123",     # Optional: Git commit if changes made
+  "outputs": {
+    "files_created": ["output1.txt"],
+    "summary": "Task completed successfully"
+  }
+}
+```
+
+### Aggregated Results
+
+All task results are aggregated into a single file:
+
+**task-results.json**:
+```json
+{
+  "metadata": {
+    "workflow_run_id": "wf-20251218-120000-abc",
+    "total_tasks": 10,
+    "completed": 8,
+    "failed": 1,
+    "blocked": 1,
+    "phase": 4
+  },
+  "tasks": [
+    {...},  # Individual task results
+    {...}
+  ]
+}
+```
+
+### Execution Flow
+
+When task_iteration is enabled and the current phase matches task_iteration.phase:
+
+1. **Load Task Index**:
+   - Read task index from parameter specified by `task_index_param`
+   - Validate structure and parse execution_order
+
+2. **Initialize Tracking**:
+   - Create results directory
+   - Initialize completed/failed/blocked task lists
+
+3. **Process Batches**:
+   - For each batch in execution_order:
+     - For each task in batch:
+       - Skip if already completed (resumption support)
+       - Check dependencies are satisfied
+       - Launch phase-executor with TASK_ID parameter
+       - Save result to results/{task-id}-result.json
+       - Retry if failed (up to max_retries_per_task)
+       - Stop if stop_on_failure and task failed
+
+4. **Aggregate Results**:
+   - Collect all task results
+   - Generate task-results.json
+   - Update runtime parameters with counts
+
+5. **Continue or Abort**:
+   - If stop_on_failure and failures exist: ABORT workflow
+   - Otherwise: Continue to next phase
+
+### Dependency Resolution
+
+Tasks can depend on other tasks. The orchestrator:
+- Checks dependency result files before executing
+- Marks task as BLOCKED if dependencies not satisfied
+- Skips blocked tasks (may be resolved in future iterations)
+
+### Resumption Support
+
+If workflow execution stops mid-task-iteration:
+- Completed tasks are marked in result files
+- On re-run, orchestrator skips completed tasks
+- Only incomplete/failed tasks are re-executed
+- Provides efficient recovery from failures
+
+### Integration with Model Selection
+
+Task iteration works seamlessly with per-phase model selection:
+- Model resolved once for the phase (step 5a)
+- All task executions use the same model
+- Consistent behavior across all tasks
+
+### Runtime Parameters
+
+Task iteration updates runtime parameters:
+- **TASKS_COMPLETED**: Number of successfully completed tasks
+- **TASKS_FAILED**: Number of failed tasks
+- **TASKS_BLOCKED**: Number of blocked tasks (dependencies not met)
+
+These parameters are available to subsequent phases.
+
+### Best Practices
+
+1. **Task Granularity**: Keep tasks small (< 5 minutes each)
+2. **Dependencies**: Minimize dependencies for better parallelism
+3. **Resumption**: Use unique, stable task IDs for reliable resumption
+4. **Error Handling**: Set appropriate max_retries_per_task
+5. **Result Files**: Phases should always create result files with status
+
+### Example Usage
+
+**workflow.yaml**:
+```yaml
+name: test-processing
+version: 1.0.0
+
+parameters:
+  TASK_INDEX_PATH:
+    type: file
+    required: true
+    description: "Path to task index JSON file"
+
+task_iteration:
+  enabled: true
+  phase: 2
+  task_index_param: TASK_INDEX_PATH
+  task_id_param: TASK_ID
+  task_dir: "tasks"
+  result_dir: "test-results"
+  max_retries_per_task: 1
+  stop_on_failure: false
+  sequential: true
+
+phases:
+  generate_logs: true
+  stop_on_failure: false
+```
+
+**phase-02-process-tests.md**:
+```markdown
+---
+phase_metadata:
+  inputs:
+    parameters:
+      - name: TASK_ID
+        required: true
+        description: "Current task ID to process"
+      - name: TASK_INDEX_PATH
+        required: true
+        description: "Path to task index"
+---
+
+# Phase 02: Process Test
+
+Process a single test identified by TASK_ID.
+
+## Process
+
+1. Read task definition from tasks/${TASK_ID}.json
+2. Execute test
+3. Create result file: test-results/${TASK_ID}-result.json with status
+
+## Phase Completion Report
+
+```yaml
+phase: 2
+status: success
+outputs_files:
+  - test-results/${TASK_ID}-result.json
+```
+
+**Benefits**
+
+- **Context Efficiency**: Each task gets fresh agent with minimal context (~50 lines)
+- **Resumable**: Automatically skip completed tasks on restart
+- **Dependency Aware**: Execute tasks in correct order based on dependencies
+- **Progress Tracking**: Clear visibility into task completion status
+- **Failure Isolation**: Failed tasks don't block independent tasks
+
 ## Validation Rules
 
 ### Structural Validation
